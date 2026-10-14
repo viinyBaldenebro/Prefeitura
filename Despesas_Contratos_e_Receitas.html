@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Despesas Obrigatórias, Contratos e Receitas — Cenário com Reduções</title>
+<style>
+:root{
+  --paper:#F3F1EA;
+  --paper-deep:#EAE7DD;
+  --ink:#1F2A3C;
+  --ink-soft:#54627A;
+  --ink-faint:#8B96A8;
+  --line:#DAD5C7;
+  --line-strong:#C3BCA8;
+  --card:#FFFFFF;
+  --receita:#2E6B4F;
+  --receita-soft:#DEEBE3;
+  --despesa:#9A4B2E;
+  --despesa-soft:#F2E1D6;
+  --contrato:#3C5A80;
+  --contrato-soft:#E1E7EF;
+  --alert:#A63D2E;
+  --alert-soft:#F5E1DD;
+  --gold:#B08A3E;
+  --gold-soft:#F1E7CE;
+  --radius:9px;
+  --shadow: 0 1px 2px rgba(31,42,60,0.06), 0 6px 18px rgba(31,42,60,0.06);
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A22;
+    --paper-deep:#1B2128;
+    --ink:#E7E4D9;
+    --ink-soft:#AEB6C4;
+    --ink-faint:#727C8D;
+    --line:#2C333D;
+    --line-strong:#3A4250;
+    --card:#1C222B;
+    --receita:#5FA98A;
+    --receita-soft:#20332B;
+    --despesa:#D08A65;
+    --despesa-soft:#33261E;
+    --contrato:#8FA8CC;
+    --contrato-soft:#212B3B;
+    --alert:#D98A7A;
+    --alert-soft:#392420;
+    --gold:#D6B87A;
+    --gold-soft:#332B18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A22;
+  --paper-deep:#1B2128;
+  --ink:#E7E4D9;
+  --ink-soft:#AEB6C4;
+  --ink-faint:#727C8D;
+  --line:#2C333D;
+  --line-strong:#3A4250;
+  --card:#1C222B;
+  --receita:#5FA98A;
+  --receita-soft:#20332B;
+  --despesa:#D08A65;
+  --despesa-soft:#33261E;
+  --contrato:#8FA8CC;
+  --contrato-soft:#212B3B;
+  --alert:#D98A7A;
+  --alert-soft:#392420;
+  --gold:#D6B87A;
+  --gold-soft:#332B18;
+  --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.35);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-font-smoothing:antialiased; scroll-padding-top: env(safe-area-inset-top,0px);}
+:root{ padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px); }
+body{
+  margin:0;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--paper) 0%, var(--paper) 100%),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 26px, rgba(90,80,50,0.035) 26px, rgba(90,80,50,0.035) 27px);
+  color:var(--ink);
+  font-family: 'Iowan Old Style','Palatino Linotype',Georgia, serif;
+  font-size:14.5px;
+  line-height:1.5;
+}
+h1,h2,h3{ font-family:Georgia,'Iowan Old Style','Palatino Linotype',Palatino,serif; font-weight:600; margin:0; color:var(--ink); }
+.sans{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.num{ font-family:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace; font-variant-numeric: tabular-nums; }
+a{color:inherit;}
+button{font-family:inherit;}
+
+header.top{
+  background:var(--ink);
+  color:var(--paper);
+  padding: calc(16px + env(safe-area-inset-top,0px)) clamp(16px,4vw,44px) 16px;
+  position:relative; overflow:hidden;
+}
+header.top::after{
+  content:""; position:absolute; inset:0;
+  background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 32px, rgba(255,255,255,0.03) 32px, rgba(255,255,255,0.03) 33px);
+  pointer-events:none;
+}
+.top-inner{ position:relative; display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; }
+.top-left h1{ color:#F6F4EC; font-size:clamp(18px,2.2vw,23px); letter-spacing:.2px; }
+.top-left .subtitle{ color:#BFC7D6; font-size:12.5px; margin-top:5px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.top-right{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:#9DA8BC; text-align:right; }
+
+nav.tabs{
+  background:var(--paper-deep);
+  border-bottom:1px solid var(--line-strong);
+  padding:0 clamp(16px,4vw,44px);
+  display:flex; gap:2px; overflow-x:auto;
+  position:sticky; top: env(safe-area-inset-top,0px); z-index:30;
+}
+nav.tabs button{
+  appearance:none; border:none; background:transparent; cursor:pointer;
+  padding:13px 16px 11px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:13.5px; font-weight:600; color:var(--ink-soft); border-bottom:3px solid transparent;
+  white-space:nowrap; transition:color .15s ease, border-color .15s ease;
+}
+nav.tabs button:hover{ color:var(--ink); }
+nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--gold); }
+nav.tabs button:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+
+main{ padding:22px clamp(16px,4vw,44px) 60px; max-width:1400px; margin:0 auto; }
+section.panel{ display:none; }
+section.panel.active{ display:block; animation:fadein .2s ease; }
+@keyframes fadein{ from{opacity:0;} to{opacity:1;} }
+
+.panel-head{ margin-bottom:18px; }
+.panel-head h2{ font-size:21px; }
+.panel-head p{ color:var(--ink-soft); font-size:13px; margin-top:5px; max-width:820px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:12px; margin-bottom:20px; }
+.kpi{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:13px 15px; box-shadow:var(--shadow); border-top:3px solid var(--ink-faint);
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+.kpi.k-receita{ border-top-color:var(--receita); }
+.kpi.k-despesa{ border-top-color:var(--despesa); }
+.kpi.k-saldo{ border-top-color:var(--gold); }
+.kpi.k-contrato{ border-top-color:var(--contrato); }
+.kpi .k-label{ font-size:10.5px; letter-spacing:.03em; color:var(--ink-soft); font-weight:600;}
+.kpi .k-value{ font-family:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace; font-size:20px; font-weight:600; margin-top:5px; color:var(--ink); }
+.kpi .k-value.neg{ color:var(--alert); }
+.kpi .k-value.pos{ color:var(--receita); }
+.kpi .k-sub{ font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+
+.card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px; margin-bottom:20px; }
+.card h3{ font-size:14.5px; margin-bottom:10px; }
+.card .card-desc{ font-size:12px; color:var(--ink-soft); margin:-4px 0 12px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.chart-wrap{ position:relative; height:300px; }
+
+/* ---------- controls ---------- */
+.controls-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.field{ display:flex; flex-direction:column; gap:4px; }
+.field label{ font-size:11px; font-weight:600; color:var(--ink-soft); }
+select, input[type=number]{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13.5px; font-weight:600; color:var(--ink);
+  padding:8px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); cursor:pointer;
+}
+input[type=number]{ cursor:text; width:180px; font-family:ui-monospace,monospace; }
+.btn{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; font-weight:600;
+  padding:8px 13px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
+  cursor:pointer; transition:all .12s ease;
+}
+.btn:hover{ background:var(--paper-deep); }
+.btn.primary{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.btn.primary:hover{ opacity:.88; }
+.btn-copy{ font-size:11px; padding:5px 10px; }
+
+.month-chips{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+.m-chip{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; font-weight:700;
+  padding:5px 10px; border-radius:14px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink-faint);
+  cursor:pointer; transition:all .12s ease; letter-spacing:.02em;
+}
+.m-chip.proj{ border-style:dashed; }
+.m-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.month-chip-actions{ display:flex; gap:8px; margin-left:4px; }
+.month-chip-actions button{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-size:11.5px; padding:2px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+.month-chip-actions button:hover{ color:var(--ink); }
+
+/* ---------- accordion groups ---------- */
+details.group-acc{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden; }
+details.group-acc summary{
+  list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center; justify-content:space-between;
+  gap:14px; flex-wrap:wrap; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+details.group-acc summary::-webkit-details-marker{ display:none; }
+details.group-acc summary .grp-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+details.group-acc summary .chev{ width:9px; height:9px; border-right:2px solid var(--ink-soft); border-bottom:2px solid var(--ink-soft); transform:rotate(-45deg); transition:transform .15s ease; flex-shrink:0; }
+details.group-acc[open] summary .chev{ transform:rotate(45deg); }
+details.group-acc summary .grp-name{ font-weight:700; font-size:14px; color:var(--ink); }
+details.group-acc summary .grp-count{ font-size:11px; color:var(--ink-faint); font-weight:600; }
+details.group-acc summary .grp-values{ display:flex; gap:18px; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-size:13px; }
+details.group-acc summary .grp-values .gv{ text-align:right; }
+details.group-acc summary .grp-values .gv .gv-label{ display:block; font-size:9.5px; color:var(--ink-faint); font-family:system-ui,sans-serif; font-weight:600; }
+details.group-acc .acc-body{ border-top:1px solid var(--line); padding:12px 16px 16px; }
+
+/* ---------- tables ---------- */
+.table-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); }
+table{ border-collapse:collapse; width:100%; font-size:12.6px; min-width:560px; }
+thead th{ background:var(--ink); color:var(--paper); font-weight:600; text-align:right; padding:8px 11px; white-space:nowrap; }
+thead th:first-child, thead th.text-col{ text-align:left; }
+thead tr.month-row th{ font-size:11px; letter-spacing:.03em; }
+tbody td{ padding:7px 11px; text-align:right; border-top:1px solid var(--line); white-space:nowrap; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-variant-numeric:tabular-nums; }
+tbody td:first-child, tbody td.text-col{ text-align:left; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+tbody tr:nth-child(even){ background:rgba(90,80,50,0.028); }
+tbody tr.total-row td{ font-weight:700; background:var(--paper-deep) !important; border-top:2px solid var(--line-strong); }
+td.despesa-val{ color:var(--despesa); }
+td.receita-val{ color:var(--receita); }
+td.saldo-pos{ color:var(--receita); font-weight:700; }
+td.saldo-neg{ color:var(--alert); font-weight:700; }
+td.dash{ color:var(--ink-faint); font-family: system-ui,sans-serif; }
+.tbl-title-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:10px; flex-wrap:wrap; }
+.tbl-title-row .ttl{ font-size:12.5px; font-weight:700; color:var(--ink-soft); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+/* Cronologia agenda table */
+table.agenda td.tag{ font-family: system-ui,sans-serif; font-size:10px; font-weight:700; color:var(--ink-faint); text-align:left; }
+table.agenda td.desp-name{ font-family: system-ui,sans-serif; font-size:11.5px; color:var(--despesa); text-align:left; font-weight:600; }
+table.agenda tr.has-desp{ background: var(--despesa-soft); }
+table.agenda tr.weekend{ display:none; }
+
+.legend-row{ display:flex; gap:16px; flex-wrap:wrap; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:var(--ink-soft); margin-bottom:14px; }
+.legend-row .dot{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:1px; }
+
+.totals-strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:18px 0 8px; }
+
+footer.site{ text-align:center; padding:24px; font-size:11.5px; color:var(--ink-faint); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+.note-box{ background:var(--gold-soft); border:1px solid var(--line-strong); border-radius:var(--radius); padding:12px 15px; font-size:12px; color:var(--ink-soft); margin-bottom:18px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+/* ---------- breadcrumb notices ---------- */
+.notice{
+  display:flex; align-items:flex-start; gap:10px; padding:10px 14px; border-radius:var(--radius);
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; line-height:1.45;
+  border:1px solid var(--line-strong); margin-bottom:10px;
+}
+.notice .n-icon{ flex-shrink:0; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; margin-top:1px; }
+.notice.notice-warn{ background:var(--despesa-soft); color:var(--ink); border-color:var(--despesa); }
+.notice.notice-warn .n-icon{ background:var(--despesa); color:#fff; }
+.notice.notice-info{ background:var(--contrato-soft); color:var(--ink); border-color:var(--contrato); }
+.notice.notice-info .n-icon{ background:var(--contrato); color:#fff; }
+
+/* ---------- custom tooltip (breadcrumb style), JS-positioned & body-appended to escape scroll clipping ---------- */
+.tt{ cursor:help; border-bottom:1px dotted var(--ink-faint); }
+#jsTooltip{
+  position:fixed; background:var(--ink); color:var(--paper); padding:7px 10px; border-radius:7px;
+  font-size:11px; line-height:1.4; font-weight:500; white-space:normal; width:max-content; max-width:300px;
+  opacity:0; pointer-events:none; transition:opacity .1s ease; box-shadow:var(--shadow);
+  z-index:999; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+#jsTooltip.show{ opacity:1; }
+
+/* ---------- pill tag (ICMS/FPM indicator) ---------- */
+.pill-tag{
+  display:inline-block; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:9px; font-weight:800;
+  letter-spacing:.03em; padding:2px 6px; border-radius:9px; background:var(--gold-soft); color:var(--gold);
+  margin-left:6px; vertical-align:1px;
+}
+
+/* ---------- currency input ---------- */
+.currency-field{ display:flex; align-items:center; border:1px solid var(--line-strong); border-radius:8px; background:var(--card); overflow:hidden; }
+.currency-field .prefix{ padding:8px 0 8px 12px; font-size:13.5px; font-weight:700; color:var(--ink-soft); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.currency-field input{ border:none; padding:8px 12px 8px 6px; width:190px; font-family:ui-monospace,monospace; font-size:13.5px; font-weight:600; color:var(--ink); background:transparent; }
+.currency-field input:focus{ outline:none; }
+
+/* ---------- versus split in agenda table ---------- */
+table.agenda thead th.hdr-desp{ background:var(--despesa); }
+table.agenda thead th.hdr-rec{ background:var(--receita); border-left:3px solid var(--ink); }
+table.agenda td.desp-name, table.agenda td.despesa-val{ background:rgba(154,75,46,0.055); }
+table.agenda td.receita-val{ background:rgba(46,107,79,0.06); border-left:3px solid var(--line-strong); }
+
+/* ---------- accordion monthly summary strip ---------- */
+.grp-months{ display:flex; gap:10px; overflow-x:auto; max-width:56vw; padding-bottom:2px; }
+.grp-months .gm{ flex-shrink:0; text-align:right; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; padding:2px 10px; border-left:1px solid var(--line); }
+.grp-months .gm:first-child{ border-left:none; }
+.grp-months .gm .gm-label{ display:block; font-size:9px; font-weight:700; color:var(--ink-faint); font-family:system-ui,sans-serif; letter-spacing:.03em; margin-bottom:2px; }
+.grp-months .gm .gm-prev{ display:block; font-size:11.5px; color:var(--ink-soft); }
+.grp-months .gm .gm-real{ display:block; font-size:11.5px; color:var(--ink); font-weight:700; }
+
+/* ---------- bottom grand-total bar (replaces top KPI strip) ---------- */
+.grand-total-bar{
+  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+  background:var(--ink); color:var(--paper); border-radius:var(--radius); padding:14px 20px; margin-top:6px; margin-bottom:10px;
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+.grand-total-bar .gt-label{ font-size:13px; font-weight:700; letter-spacing:.01em; }
+.grand-total-bar .gt-values{ display:flex; gap:26px; }
+.grand-total-bar .gt-values .gtv{ text-align:right; }
+.grand-total-bar .gt-values .gtv .gtv-label{ display:block; font-size:9.5px; color:#B9C2D4; font-weight:600; letter-spacing:.03em; }
+.grand-total-bar .gt-values .gtv .gtv-value{ display:block; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-size:15px; font-weight:700; margin-top:2px; }
+
+/* ---------- group item tables: refined headers + sticky description ---------- */
+table.grouptbl thead th{ text-align:center; border-left:1px solid rgba(255,255,255,0.14); }
+table.grouptbl thead th.text-col{ text-align:left; border-left:none; }
+table.grouptbl thead tr.month-row th{ border-top:1px solid rgba(255,255,255,0.14); }
+table.grouptbl td:first-child, table.grouptbl th:first-child{
+  position:sticky; left:0; z-index:2; background:var(--card); box-shadow: 2px 0 4px rgba(31,42,60,0.06);
+}
+table.grouptbl thead th:first-child{ z-index:6; background:var(--ink); box-shadow:none; }
+table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#F8F7F2; }
+:root[data-theme="dark"] table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#1F262F; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#1F262F; } }
+table.grouptbl tbody tr.total-row td:first-child{ background:var(--paper-deep); }
+
+@media print{
+  nav.tabs{ display:none; }
+  section.panel{ display:block !important; }
+  body{ background:#fff; }
+  details.group-acc{ break-inside:avoid; }
+}
+@media (max-width:640px){
+  .top-inner{ flex-direction:column; align-items:flex-start; }
+  details.group-acc summary .grp-values{ gap:10px; font-size:12px; }
+}
+
+.notice.notice-ok{ background:var(--receita-soft); color:var(--ink); border-color:var(--receita); }
+.notice.notice-ok .n-icon{ background:var(--receita); color:#fff; }
+.cmp-note{ font-size:11.5px; color:var(--ink-faint); margin:8px 0 0; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.card-parcelado{ border-left:4px solid var(--gold); margin-top:22px; }
+table.grouptbl td.dash{ text-align:right; }
+
+/* ---------- scenario banner ---------- */
+.scenario-banner{
+  background: var(--gold); color:#2A2008;
+  padding: 9px clamp(16px,4vw,44px);
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:12.5px; line-height:1.4;
+  padding-top: calc(9px + env(safe-area-inset-top,0px));
+}
+.scenario-tag{
+  flex-shrink:0; font-weight:800; font-size:10.5px; letter-spacing:.04em;
+  background:#2A2008; color: var(--gold); padding:4px 9px; border-radius:5px;
+}
+.scenario-text{ color:#2A2008; }
+.scenario-pill{
+  display:inline-block; font-size:11px; font-weight:700; letter-spacing:.02em;
+  background: var(--gold-soft); color: var(--gold); border:1px solid var(--gold);
+  padding:3px 10px; border-radius:12px; vertical-align:middle; margin-left:10px;
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+:root[data-theme="dark"] .scenario-banner, :root[data-theme="dark"] .scenario-tag{ color:#2A2008; }
+
+</style>
+</head>
+<body>
+<div class="scenario-banner">
+  <span class="scenario-tag">CENÁRIO · REDUÇÕES PROPOSTAS</span>
+  <span class="scenario-text">Esta é uma versão alternativa do painel original, com a planilha editada pelo Secretário de Gestão (Max Mena) aplicando os cortes e realocações descritos no memorando de ajuste fiscal — reduções em Contratos e em Atividade Delegada válidas para Outubro–Dezembro/2026. O painel original não foi alterado.</span>
+</div>
+<header class="top">
+  <div class="top-inner">
+    <div class="top-left">
+      <h1>Despesas Obrigatórias, Contratos e Receitas <span class="scenario-pill">Cenário com reduções</span></h1>
+      <div class="subtitle">Prefeitura Municipal de Olímpia · Painel de acompanhamento e projeção financeira</div>
+    </div>
+    <div class="top-right">Planilha editada por Max Mena (Secretário de Gestão) · memorando de ajuste fiscal, 9/out/2026<br>Fontes: Recursos Próprios · Educação 25% · Saúde 15% · CIP</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="crono">Cronologia</button>
+  <button class="tab-btn" data-tab="despesas">Despesas Obrigatórias</button>
+  <button class="tab-btn" data-tab="contratos">Contratos</button>
+  <button class="tab-btn" data-tab="receitas">Receitas</button>
+</nav>
+
+<main>
+
+  <!-- ===================== CRONOLOGIA ===================== -->
+  <section class="panel active" id="panel-crono">
+    <div class="panel-head">
+      <h2>Despesas Obrigatórias × Receitas — Por Cronologia</h2>
+      <p>Indica dia a dia do mês selecionado: o que costuma vencer em cada dia útil e quanto se espera arrecadar naquele dia.</p>
+    </div>
+
+    <div class="notice notice-warn">
+      <span class="n-icon">!</span>
+      <span>As arrecadações foram calculadas aplicando o percentual médio histórico sobre a receita prevista do mês.</span>
+    </div>
+    <div class="notice notice-info">
+      <span class="n-icon">i</span>
+      <span>O saldo acumulado mostra como a caixa evolui ao longo do mês.</span>
+    </div>
+
+    <div class="controls-row">
+      <div class="field">
+        <label for="cronoMonthSelect">Mês</label>
+        <select id="cronoMonthSelect"></select>
+      </div>
+      <div class="field">
+        <label for="cronoPrevisto">Receita prevista do mês</label>
+        <div class="currency-field">
+          <span class="prefix">R$</span>
+          <input type="text" inputmode="decimal" id="cronoPrevisto">
+        </div>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn" id="cronoResetBtn">Restaurar previsto original</button>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi k-despesa">
+        <div class="k-label">TOTAL DESPESAS OBRIGATÓRIAS NO MÊS</div>
+        <div class="k-value neg" id="kpiDespMes">—</div>
+      </div>
+      <div class="kpi k-receita">
+        <div class="k-label">TOTAL RECEITA PROJETADA NO MÊS</div>
+        <div class="k-value pos" id="kpiRecMes">—</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">DIAS ÚTEIS NO MÊS</div>
+        <div class="k-value" id="kpiDiasMes">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-title-row">
+        <span class="ttl">Agenda do mês — dia a dia</span>
+        <button class="btn btn-copy" data-copy-target="tableCrono">Copiar tabela</button>
+      </div>
+      <div class="legend-row">
+        <span><span class="dot" style="background:var(--despesa-soft);border:1px solid var(--despesa)"></span>Dia com despesa obrigatória agendada</span>
+        <span>ICMS = referência de repasse às terças-feiras · FPM = referência de repasse nos dias 10, 20 e 30</span>
+      </div>
+      <div id="cronoNormNote" style="margin-bottom:14px;"></div>
+      <div class="table-scroll">
+        <table class="agenda" id="tableCrono">
+          <thead>
+            <tr>
+              <th class="text-col">Dia útil</th>
+              <th class="text-col">Data</th>
+              <th class="text-col">Dia da semana</th>
+              <th class="text-col hdr-desp">Despesas</th>
+              <th class="hdr-desp">&nbsp;</th>
+              <th class="hdr-rec">Receita prevista</th>
+              <th>Saldo do dia</th>
+              <th>Saldo acumulado</th>
+            </tr>
+          </thead>
+          <tbody id="cronoBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-title-row">
+        <span class="ttl">Contratos previstos × saldo após despesas obrigatórias</span>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi k-saldo">
+          <div class="k-label">SALDO APÓS DESPESAS OBRIGATÓRIAS</div>
+          <div class="k-value" id="cmpSaldo">—</div>
+        </div>
+        <div class="kpi k-contrato">
+          <div class="k-label" id="cmpContratosLabel">CONTRATOS PREVISTOS NO MÊS</div>
+          <div class="k-value" id="cmpContratos">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">SALDO − CONTRATOS</div>
+          <div class="k-value" id="cmpResultado">—</div>
+        </div>
+      </div>
+      <div id="cmpNotice"></div>
+      <p class="cmp-note">Contratos previstos conforme a aba Contratos (total geral do mês). Não inclui Constroeste e Della Fattoria, tratadas à parte na aba Contratos.</p>
+    </div>
+  </section>
+
+  <!-- ===================== DESPESAS OBRIGATÓRIAS ===================== -->
+  <section class="panel" id="panel-despesas">
+    <div class="panel-head">
+      <h2>Despesas Obrigatórias</h2>
+    </div>
+
+    <div class="controls-row">
+      <div class="month-chips" id="despMonthChips"></div>
+      <div class="month-chip-actions">
+        <button data-action="proj" data-target="desp">Somente projeção (Set–Dez)</button>
+        <button data-action="all" data-target="desp">Ano todo</button>
+      </div>
+    </div>
+
+    <div id="despAccordions"></div>
+
+    <div id="despTotalsStrip"></div>
+  </section>
+
+  <!-- ===================== CONTRATOS ===================== -->
+  <section class="panel" id="panel-contratos">
+    <div class="panel-head">
+      <h2>Contratos</h2>
+      <p>Contratos e fornecedores agrupados por natureza — mão de obra terceirizada, transporte, infraestrutura essencial, obras e demais fornecedores. A classificação por nível de importância é uma sugestão inicial; ajuste conforme o conhecimento de cada contrato.</p>
+    </div>
+
+    <div class="controls-row">
+      <div class="month-chips" id="contMonthChips"></div>
+      <div class="month-chip-actions">
+        <button data-action="proj" data-target="cont">Somente projeção (Set–Dez)</button>
+        <button data-action="all" data-target="cont">Ano todo</button>
+      </div>
+    </div>
+
+    <div id="contAccordions"></div>
+
+    <div id="contTotalsStrip"></div>
+
+    <div class="card card-parcelado">
+      <div class="tbl-title-row">
+        <div>
+          <h3>Pagamento parcelado — Constroeste e Della Fattoria</h3>
+          <div class="card-desc">Fora do total de Contratos acima. Simulação: o valor previsto de cada empresa é somado e o total das duas é dividido em parcelas fixas. O realizado indica apenas o que foi liquidado no período (não significa pagamento). Valores em módulo.</div>
+        </div>
+        <button class="btn btn-copy" data-copy-target="tblParcelados">Copiar tabela</button>
+      </div>
+      <div class="controls-row">
+        <div class="field">
+          <label for="parcelaValor">Valor da parcela</label>
+          <div class="currency-field"><span class="prefix">R$</span><input type="text" inputmode="decimal" id="parcelaValor"></div>
+        </div>
+      </div>
+      <div id="parceladosBody"></div>
+    </div>
+  </section>
+
+  <!-- ===================== RECEITAS ===================== -->
+  <section class="panel" id="panel-receitas">
+    <div class="panel-head">
+      <h2>Receitas</h2>
+      <p>Receitas de arrecadação própria por fonte de recurso. Clique em uma fonte para ver o detalhamento item a item.</p>
+    </div>
+
+    <div class="controls-row">
+      <div class="month-chips" id="recMonthChips"></div>
+      <div class="month-chip-actions">
+        <button data-action="proj" data-target="rec">Somente projeção (Set–Dez)</button>
+        <button data-action="all" data-target="rec">Ano todo</button>
+      </div>
+    </div>
+
+    <div id="recAccordions"></div>
+
+    <div id="recTotalsStrip"></div>
+  </section>
+
+</main>
+
+<footer class="site">Painel gerado a partir da Listagem Analítica para Conferência dos Valores Mensais · dados consolidados de Recursos Próprios, Educação 25%, Saúde 15% e CIP.</footer>
+<div id="jsTooltip" role="tooltip"></div>
+
+<script id="data-blob" type="application/json">{"months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"], "monthsUpper": ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"], "despesas": {"groups": [{"name": "FOLHA LÍQUIDA", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "CENTRO DE INTEGRAÇÃO - FOLHA PRÓPRIO", "vals": [-90000, -78622.9, -90000, -81700.13, -90000, -94230.56, -85500, -96071.46, -85500, -91430.1, -85500, -99240.95, -85500, -86510.76, -85500, -80876.94, -85500, -3688.62, -85500, 0, -85500, 0, -136800, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "FOLHA DE PAGAMENTO - PRÓPRIOS", "vals": [-3400000, -3382866.92, -3400000, -3268073.51, -3400000, -3846887.49, -3600000, -3570417.13, -3600000, -3562456.8, -3600000, -3690384.44, -3600000, -3633627.96, -3600000, -3507463.75, -3600000, -44356.23, -4200000, 0, -3600000, 0, -5760000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "CENTRO DE INTEGRAÇÃO CIEE - EDUCAÇÃO", "vals": [-16000, -17986.3, -16000, -16686.51, -16000, -16952.18, -16000, -14428.75, -16000, -11596.84, -16000, -12469.64, -16000, -17107.8, -16000, -5039.13, -16000, 0, -16000, 0, -16000, 0, -32000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "FOLHA DE PAGAMENTO - EDUCAÇÃO", "vals": [-1345000, -1342471.17, -1345000, -1260869.58, -1345000, -1514096.94, -1400000, -1382364.82, -1400000, -1392907.28, -1420000, -1418619.88, -1420000, -1496164.65, -1420000, -1707090.39, -2154782.61, -2679.75, -2454782.61, 0, -2154782.61, 0, -3447652.18, 0]}, {"fonte": "SAÚDE 15%", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "CENTRO DE INTEGRAÇÃO", "vals": [-14700, -14788.23, -14700, -14019.33, -14700, -18567.83, -14700, -14165.57, -14700, -14404.76, -14700, -14064.19, -14700, -14828.97, -14700, -6267.88, -14700, 0, -14700, 0, -14700, 0, -29400, 0]}, {"fonte": "SAÚDE 15%", "grupo": "VENCIMENTOS E VANTAGENS FIXAS", "desc": "FOLHA DE PAGAMENTO - SAÚDE", "vals": [-2100000, -2096422.18, -1963000, -1882686.23, -2420000, -2419411.47, -2250000, -2245646.21, -2244000, -2440817.25, -2120000, -2181327.36, -2120000, -2127489.78, -2120000, -1560884.13, -2120000, -52472.94, -2120000, 0, -2120000, 0, -3392000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "OUTRAS VARIÁVEIS", "desc": "AUXÍLIO ALIMENTAÇÃO REC. PRÓPRIOS", "vals": [-364000, -331560, -364000, -331280, -364000, -497012, -364000, -361834, -364000, -364232, -364000, -370612, -364000, -371690, -364000, -373120, -364000, 0, -364000, 0, -364000, 0, -364000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "OUTRAS VARIÁVEIS", "desc": "AUXILIO ALIMENTAÇÃO - EDUCAÇÃO", "vals": [-195000, -164320, -195000, -222240, -195000, -328306, -245000, -250932, -245000, -247038, -245000, -245168, -245000, -249788, -245000, -282502, -245000, 0, -245000, 0, -245000, 0, -245000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "OUTRAS VARIÁVEIS", "desc": "PREFEITURA AUXILIO ALIMENTAÇÃO SAUDE", "vals": [-200000, -186340, -200000, -212680, -200000, -264974, -200000, -194392, -200000, -209968, -200000, -209022, -200000, -206052, -200000, -202576, -200000, 0, -200000, 0, -200000, 0, -200000, 0]}], "subtotal": [-7724700, -7615377.699999999, -7587700, -7290235.289999999, -8044700, -9000438.47, -8175200, -8130251.94, -8169200, -8334851.029999999, -8065200, -8240908.460000001, -8065200, -8203259.92, -8065200, -7725820.22, -8799982.61, -103197.54000000001, -9699982.61, 0, -8799982.61, 0, -13606852.18, 0]}, {"name": "INSTITUTO DE PREVIDÊNCIA (IPSPMO)", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "INSS E IPSPMO", "desc": "INST.PREV.MUNICIPAL - IPSPMO REC. PRÓPRIOS", "vals": [-405000, -398684.66, -405000, -402876.21, -420000, -466767.07, -420000, -424880.54, -420000, -426268.46, -420000, -436542.05, -420000, -435754.31, -420000, -435353.45, -420000, 0, -420000, 0, -420000, 0, -673000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "INST. PREV. MUNICIPAL - PARCELAMENTO REC. PRÓPRIOS", "vals": [-41000, -41015.87, -41000, -41015.87, -41000, -41167.13, -41000, -41240.71, -41000, -41154.86, -41000, -41118.07, -41000, -40946.37, -41000, -40909.58, -41000, 0, -41000, 0, -41000, 0, -41000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "PENSÕES VITALÍCIAS - REC. PRÓPRIOS", "vals": [-3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3782.34, -3242, -3782.34, 0, -3782.34, 0, -4048, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "INSS E IPSPMO", "desc": "INST. PREV. BARRETOS EDUCAÇÃO 25%", "vals": [-1850, -1880.64, -1850, -1896.28, -1850, -1915.24, -1904, -1934.39, -3095.4, -3095.4, -3095.4, -3095.4, -3095.4, -3095.4, -3095.4, -2446.82, -3095.4, 0, -3095.4, 0, -3095.4, 0, -6191, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "INSS E IPSPMO", "desc": "IPSPMO PATRONAL - EDUCAÇÃO", "vals": [-200000, -195122.38, -200000, -196660.19, -200000, -225963.44, -210000, -208558.7, -210000, -209225.49, -210000, -209466.34, -210000, -209513.12, -210000, -288265.44, -332652.17, 0, -332652.17, 0, -332652.17, 0, -532243.47, 0]}, {"fonte": "SAÚDE 15%", "grupo": "INSS E IPSPMO", "desc": "INST.PREV.MUNICIPAL - IPSPMO REC. SAÚDE", "vals": [-280000, -281204.72, -280000, -267999.7, -280000, -305812.65, -280000, -281490.49, -280000, -287247.83, -280000, -275454.64, -280000, -271963.74, -280000, -274878.19, -280000, 0, -280000, 0, -280000, 0, -432000, 0]}], "subtotal": [-931632.3400000001, -921690.61, -931632.3400000001, -914230.5900000001, -946632.3400000001, -1045407.87, -956686.3400000001, -961887.17, -957877.74, -970774.3800000001, -957877.74, -969458.8400000001, -957877.74, -965055.28, -957877.74, -1045635.8200000001, -1080529.9100000001, -3242, -1080529.9100000001, 0, -1080529.9100000001, 0, -1688482.47, 0]}, {"name": "INSS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "INSS E IPSPMO", "desc": "INST. NAC. SEGURO SOCIAL - REC. PRÓPRIOS", "vals": [-95000, -111831.81, -95000, -109146.38, -113800, -142152.4, -113800, -102068.27, -113800, -143798.91, -113800, -125842.89, -113800, -125859.36, -113800, -123608.06, -113800, -3044.55, -113800, 0, -113800, 0, -182000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "INSS E IPSPMO", "desc": "INST. NAC. SEGURO SOCIAL - RECEITA EDUCAÇÃP", "vals": [-37000, -8341.24, -37000, -36578.57, -37000, -44500.54, -38570, -40252.33, -38570, -39627.06, -38570, -38839.72, -38570, -41261.87, -38570, -37560.17, -71000, 0, -71000, 0, -71000, 0, -113000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "INSS E IPSPMO", "desc": "INST. NAC. SEGURO SOCIAL - REC SAÚDE", "vals": [-24800, -23302.89, -24800, -23734.5, -63000, -62666.89, -40000, -50868.01, -40000, -42565.3, -40000, -40403.91, -40000, -39797.44, -40000, -34833.29, -40000, 0, -40000, 0, -40000, 0, -64000, 0]}, {"fonte": "FUNDEB", "grupo": "INSS E IPSPMO", "desc": "INST. NAC. SEGURO SOCIAL – FUNDEB", "vals": [-83500, -249.92, -83500, -91095.89, -150000, -131667.57, -150000, -147798.57, -150000, -154634.57, -150000, -156800.11, -150000, -158165.26, -142734.3, -150311.1, -128231.88, 0, -128231.88, 0, -128231.88, 0, -121231.88, 0]}], "subtotal": [-240300, -143725.86000000002, -240300, -260555.34000000003, -363800, -380987.4, -342370, -340987.18000000005, -342370, -380625.84, -342370, -361886.63, -342370, -365083.93000000005, -335104.3, -346312.62, -353031.88, -3044.55, -353031.88, 0, -353031.88, 0, -480231.88, 0]}, {"name": "ATIVIDADE DELEGADA", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ATIVIDADE DELEGADA - REC. PRÓPRIO", "vals": [-100000, -99168.16, -100000, -102665.08, -100000, -89575.07, -100000, -91249.53, -100000, -104589.55, -100000, -104793.53, -100000, -98691.13, -100000, -99073.57, -100000, -119385.87, -70000, 0, -70000, 0, -70000, 0]}], "subtotal": [-100000, -99168.16, -100000, -102665.08, -100000, -89575.07, -100000, -91249.53, -100000, -104589.55, -100000, -104793.53, -100000, -98691.13, -100000, -99073.57, -100000, -119385.87, -70000, 0, -70000, 0, -70000, 0]}, {"name": "AUXÍLIO", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES EDUCACIONAIS", "desc": "AUXILIO ESTUDANTES", "vals": [0, 0, 0, 0, -60000, 0, -60000, -114400, -60000, -63360, -60000, -60000, -60000, -59160, -60000, -59720, -60000, -60000, -60000, 0, -60000, 0, -60000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "BOLSA ATLETA", "desc": "BOLSA ATLETAS - REC. PRÓPRIOS", "vals": [-11300, -11959.82, -11300, -11346.07, -11300, -11961.99, -11300, -11753.13, -11300, -11583.68, -11300, -11250.48, -11300, -11490.09, -11300, -11563.42, -11300, -11497.02, -11300, 0, -11300, 0, -11300, 0]}], "subtotal": [-11300, -11959.82, -11300, -11346.07, -71300, -11961.99, -71300, -126153.13, -71300, -74943.68, -71300, -71250.48, -71300, -70650.09, -71300, -71283.42, -71300, -71497.02, -71300, 0, -71300, 0, -71300, 0]}, {"name": "SUBVENÇÕES", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "ASSOC. PAIS AMIGOS EXC. APAE REC. PROP.", "vals": [-19166.66, 0, -19166.66, -38333.33, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, -19166.66, 0, -19166.66, 0, -19166.66, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "ASSOCIAÇÃO ACADEMICOS - PRÓPRIOS", "vals": [0, -42000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "ASSOCIAÇÃO CULT. SAMBA SEM COMP. REC. PRÓPRIO", "vals": [-42000, -42000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "ASSOCIAÇÃO CULT. UNIDOS DA COHAB - REC. PRÓPRIOS", "vals": [0, -42000, -25513.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "LIGA OLIMPIENSE DE FUTEBOL - REC. PRÓPRIO", "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -16516.67, -28602, -16516.67, -22250, -16516.67, -31590, -16516.67, -13358, -16516.67, 0, -16516.67, 0, -16516.67, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ABECAO - JOVEM APRENDIZ", "vals": [-38333.33, -38333.33, -38333.33, -58333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, -38333.33, 0, -38333.33, 0, -38333.33, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ABECÃO - PRÓPRIO", "vals": [-10000, 0, -10000, -20000, -10000, -10000, -10000, -10000, -10000, -10000, -10000, -10000, -60000, -10000, -60000, -110000, -60000, -60000, -60000, 0, -60000, 0, -60000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ABRIGO SÃO JOSÉ DE OLIMPIA", "vals": [-52000, 0, -52000, -104000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, -52000, 0, -52000, 0, -52000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ASSOC. CENTRO DE CONV. IDOSO", "vals": [-15000, 0, -15000, -30000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, -15000, 0, -15000, 0, -15000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ASSOCIAÇÃO CULTURAL RAIZES", "vals": [0, 0, -30000, 0, -30000, 0, -30000, -90000, -30000, -30000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ASSOCIAÇÃO DE CAPOEIRA RAIZES DE OLIMPIA - REC. PRÓPRIOS", "vals": [-17982.68, 0, -17982.68, 0, -17982.68, -24845.2, -17982.68, -7883, -17982.68, -7883, -17982.68, -7883, -17982.68, -7883, -17982.68, -7883, -17982.68, -7883, -17982.68, 0, -17982.68, 0, -17982.68, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ASSOCIAÇÃO N. S. RENASCER REC. PRÓPRIO", "vals": [-11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, -11912.81, 0, -11912.81, 0, -11912.81, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ASSOCIAÇÃO NOSSA SENHORA - PRÓPRIOS", "vals": [-4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, -4666.67, 0, -4666.67, 0, -4666.67, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "SUBVENÇÕES SOCIAIS", "desc": "ORGANIZAÇÃO NÃO GOVERNAMENTAL", "vals": [-4750, 0, -4750, -9500, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, -4750, 0, -4750, 0, -4750, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "SUBVENÇÕES EDUCACIONAIS", "desc": "ASSOC. PAIS E AMIGOS EXC OLIMPIA APAE - EDUCAÇÃO", "vals": [-40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, -40976.25, 0, -40976.25, 0, -40976.25, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "SUBVENÇÕES EDUCACIONAIS", "desc": "CIDADE DA IMACULADA - EDUCAÇÃO", "vals": [-86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, -86158.8, 0, -86158.8, 0, -86158.8, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "SUBVENÇÕES EDUCACIONAIS", "desc": "CIDADE MIRIM DE S. JOÃO BATISTA - EDUCAÇÃO", "vals": [-75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, -75388.95, 0, -75388.95, 0, -75388.95, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "SUBVENÇÕES EDUCACIONAIS", "desc": "INSTITUTO SANTA FILOMENA - EDUCAÇÃO", "vals": [-64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, -64619.1, 0, -64619.1, 0, -64619.1, 0]}, {"fonte": "SAÚDE 15%", "grupo": "SUBVENÇÕES DE SAÚDE", "desc": "ASSOC. PAIS AMIGOS EXC. APAE - SAÚDE", "vals": [-53333.33, 0, -53333.33, -106666.66, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, -53333.33, 0, -53333.33, 0, -53333.33, 0]}, {"fonte": "SAÚDE 15%", "grupo": "SUBVENÇÕES DE SAÚDE", "desc": "SANTA CASA DE MISERICÓDIA DE OLIMPIA - SAÚDE", "vals": [-1300000, -1500000, -1300000, -1300000, -1300000, 0, -1300000, -2600000, -1300000, -1300000, -1300000, -1300000, -1377000, -1377000, -1377000, -1377000, -1377000, -1377000, -1377000, 0, -1377000, 0, -1377000, 0]}], "subtotal": [-1836288.58, -1948055.9100000001, -1849802.38, -1950555.9, -1824288.58, -501151.10000000003, -1824288.58, -3174188.9, -1824288.58, -1814188.9, -1810805.25, -1812790.9, -1937805.25, -1883438.9, -1937805.25, -1992778.9, -1937805.25, -1924546.9, -1937805.25, 0, -1937805.25, 0, -1937805.25, 0]}, {"name": "CONTAS DE CONSUMO", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "ÁGUA E ESGOTO", "desc": "SABESP OLIMPIA S/A REC. PRÓPRIO", "vals": [-52000, -53469.26, -52000, -57459.55, -52000, -51832.18, -52000, -34935.65, -52000, -70124.19, -52000, -56364.25, -52000, -54619.5, -52000, -44984.45, -52000, -66647, -52000, 0, -52000, 0, -80000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "ÁGUA E ESGOTO", "desc": "SABESP OLIMPIA S/A - EDUCAÇÃO", "vals": [-58000, -69395.9, -58000, -57170.05, -58000, -37551.2, -58000, -12910.73, -58000, -64213.03, -58000, -62052.75, -58000, -96875.54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "ÁGUA E ESGOTO", "desc": "SABESP OLIMPIA S/A - RP SAUDE", "vals": [-18000, -16278.94, -18000, -18673.55, -18000, -17907.89, -18000, -9183.21, -18000, -27537.48, -18000, -19551.55, -18000, -19872.13, -18000, -16303.05, -18000, -17377.52, -18000, 0, -18000, 0, -18000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ENERGIA ELÉTRICA", "desc": "CIA PAULISTA DE FORÇA E LUZ - PRÓPRIOS", "vals": [-148000, -152118.61, -148000, -159951.63, -148000, -137956, -148000, -143226.86, -148000, -141052.82, -148000, -185862.98, -148000, -150859.2, -148000, -129039.51, -148000, -147983.07, -148000, 0, -148000, 0, -148000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "ENERGIA ELÉTRICA", "desc": "CIA PAULISTA DE FORCA E LUZ - EDUCAÇÃO", "vals": [-140000, -127593.79, -140000, -107719.81, -140000, -64641.4, -140000, -124702.02, -140000, -144017.24, -140000, -148179.36, -140000, -95669.41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "ENERGIA ELÉTRICA", "desc": "CIA PAULISTA DE FORÇA E LUZ - SAÚDE", "vals": [-64000, -57828.73, -64000, -69657.12, -64000, -61959.27, -64000, -57888.94, -64000, -61616.92, -64000, -58679.98, -64000, -37969.58, -64000, -35086.89, -64000, -33685.89, -64000, 0, -64000, 0, -64000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "TELEFONE", "desc": "EMP. BRAS. TELECOMUNIC. S.A. - PRÓPRIOS", "vals": [-11534.4, -11635.16, -40, 0, -40, 0, -40, -314.4, -40, 0, -40, 0, -40, -48.84, -40, -512.75, -40, -19.33, -40, 0, -40, 0, -40, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "TELEFONE", "desc": "TELEFONICA BRASIL S. A - PRÓPRIOS", "vals": [-12000, -7158.3, -12000, -7123.85, -12000, -12673.68, -12000, -16875.78, -12000, -2583.35, -12000, -8107.99, -12000, -8432.02, -12000, -8557.77, -12000, -13065.69, -12000, 0, -12000, 0, -12000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "TELEFONE", "desc": "TELEFONICA BRASIL S.A - EDUCAÇÃO", "vals": [-3800, -1169.66, -3800, -1151.99, -3800, -4552.09, -3800, -4079.3, -3800, -1874.62, -3800, -2602.9, -3800, -1702.41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "TELEFONE", "desc": "TELEFONICA BRASIL S/A - SAÚDE", "vals": [-1800, -1734.02, -1800, -1734.03, -1800, -1053.33, -1800, 0, -1800, 0, -1800, 0, -1800, 0, -1800, 0, -1800, 0, -1800, 0, -1800, 0, -1800, 0]}], "subtotal": [-509134.4, -498382.3699999999, -497640, -480641.58, -497640, -390127.0400000001, -497640, -404116.88999999996, -497640, -513019.64999999997, -497640, -541401.76, -497640, -466048.63000000006, -295840, -234484.42, -295840, -278778.50000000006, -295840, 0, -295840, 0, -323840, 0]}, {"name": "FINISA", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "CAIXA ECONOMICA FEDERAL - FINISA", "vals": [-500000, -24326.63, -500000, -559512.64, -500000, -437879.43, -500000, -485172.07, -500000, -522988.37, -500000, -569738.87, -500000, -510783.28, -500000, -583836.65, -500000, -526130.07, -500000, 0, -500000, 0, -1500000, 0]}], "subtotal": [-500000, -24326.63, -500000, -559512.64, -500000, -437879.43, -500000, -485172.07, -500000, -522988.37, -500000, -569738.87, -500000, -510783.28, -500000, -583836.65, -500000, -526130.07, -500000, 0, -500000, 0, -1500000, 0]}, {"name": "DESENVOLVE SP", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "DESENVOLVE SP AGENCIA - RECURSOS PRÓPRIOS", "vals": [-130000, -131566.94, -130000, -133342.57, -130000, -120660.83, -130000, -127524.24, -130000, -123256.94, -130000, -121911.88, -130000, -125437.78, -130000, -126493.96, -130000, -117571.94, -130000, 0, -130000, 0, -130000, 0]}], "subtotal": [-130000, -131566.94, -130000, -133342.57, -130000, -120660.83, -130000, -127524.24, -130000, -123256.94, -130000, -121911.88, -130000, -125437.78, -130000, -126493.96, -130000, -117571.94, -130000, 0, -130000, 0, -130000, 0]}, {"name": "DUODÉCIMO", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS SUBVENÇÕES", "desc": "CAMARA MUNICIPAL DE OLIMPIA - PRÓPRIOS", "vals": [-1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, 0, -1049616.67, 0, -1049616.67, 0]}], "subtotal": [-1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, -1049616.67, 0, -1049616.67, 0, -1049616.67, 0]}, {"name": "PASEP", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "PASEP", "desc": "SECRETARIA DA RECEITA PASEP - REC. PRÓPRIOS", "vals": [-345000, -403923.21, -345000, -424058.46, -345000, -319735.55, -345000, -383955.61, -345000, -336668.35, -345000, -363101.54, -345000, -311124.3, -345000, -364599.37, -345000, -332756.41, -345000, 0, -345000, 0, -345000, 0]}], "subtotal": [-345000, -403923.21, -345000, -424058.46, -345000, -319735.55, -345000, -383955.61, -345000, -336668.35, -345000, -363101.54, -345000, -311124.3, -345000, -364599.37, -345000, -332756.41, -345000, 0, -345000, 0, -345000, 0]}, {"name": "DÍVIDAS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "SEC. DA RECEITA - PARCELAMENTOS", "vals": [-118000, -102609.03, -118000, -121454.99, -118000, -113196.05, -118000, -114150.57, -118000, -115010.45, -118000, -107505.99, -118000, -125142.4, -118000, -117778.85, -118000, 0, -118000, 0, -118000, 0, -118000, 0]}], "subtotal": [-118000, -102609.03, -118000, -121454.99, -118000, -113196.05, -118000, -114150.57, -118000, -115010.45, -118000, -107505.99, -118000, -125142.4, -118000, -117778.85, -118000, 0, -118000, 0, -118000, 0, -118000, 0]}, {"name": "PRECATÓRIOS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "TRIBUNAL DE JUSTIÇA DO EST. PRECATÓRIOS", "vals": [0, 0, 0, 0, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, -134000, 0, -134000, 0, -134000, 0, -134000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "PARCELAMENTOS VIGENTES", "desc": "TRIBUNAL REG. TRABALHO REC. PROP", "vals": [0, -14610.09, 0, -28410.86, -134000, -165998.73, -134000, -134000, -134000, -159541.77, -134000, -158399.45, -134000, -144228.72, -134000, -150368.81, -134000, -27652.27, -134000, 0, -134000, 0, -134000, 0]}], "subtotal": [0, -14610.09, 0, -28410.86, -268000, -299998.73, -268000, -268000, -268000, -293541.77, -268000, -292399.45, -268000, -278228.72, -268000, -284368.81, -268000, -27652.27, -268000, 0, -268000, 0, -268000, 0]}, {"name": "DESPESAS BANCÁRIAS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "BANCO DO BRASIL - REC. PRÓPRIOS", "vals": [-23000, -21285.85, -8000, -7803.93, -23000, -23324.82, -33000, -33797.76, -33000, -30624.01, -33000, -30740.36, -29000, -28572.33, -29000, -28993.2, -29000, -27543.05, -29000, 0, -29000, 0, -29000, 0]}], "subtotal": [-23000, -21285.85, -8000, -7803.93, -23000, -23324.82, -33000, -33797.76, -33000, -30624.01, -33000, -30740.36, -29000, -28572.33, -29000, -28993.2, -29000, -27543.05, -29000, 0, -29000, 0, -29000, 0]}, {"name": "CONVÊNIOS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CODEVAR - REC. PRÓPIOS", "vals": [-10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, 0, -10372.26, 0, -10372.26, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CONFEDERAÇÃO NACIONAL DE MUNICIPIOS - REC. PRÓPRIOS", "vals": [-2072, -2072, -2182, -2182, -2182, -2182, -2182, -2182, -2182, 0, -2182, -4364, -2182, -2182, -2182, -2182, -2182, -2182, -2182, 0, -2182, 0, -2182, 0]}], "subtotal": [-10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, -10372.26, 0, -10372.26, 0, -10372.26, 0]}, {"name": "CIP", "items": [{"fonte": "CIP", "grupo": "ENERGIA ELÉTRICA", "desc": "CIA PAULISTA DE FORÇA E LUZ - CIP", "vals": [-255000, -250482.45, -255000, -259069.98, -255000, -233676.31, -255000, -224371.05, -255000, -247685.38, -255000, -262512.1, -255000, -279740.42, -255000, -278414.16, -255000, -300302.54, -255000, 0, -255000, 0, -255000, 0]}], "subtotal": [-255000, -250482.45, -255000, -259069.98, -255000, -233676.31, -255000, -224371.05, -255000, -247685.38, -255000, -262512.1, -255000, -279740.42, -255000, -278414.16, -255000, -300302.54, -255000, 0, -255000, 0, -255000, 0]}], "totals": [{"label": "TOTAL GERAL PRÓPRIO - DESPESAS OBRIGATÓRIAS", "values": [-13518971.99, -12986298.849999998, -13368991.389999999, -13334429.97, -14281977.59, -13784061.020000003, -14411101.59, -15691051.660000002, -14406292.99, -14664699.589999998, -14288809.66, -14637505.36, -14411809.66, -14481133.360000001, -14202743.96, -14071076.479999999, -15078106.32, -4584962.789999999, -15948106.32, 0, -15048106.32, 0, -21618128.450000003, 0]}, {"label": "TOTAL GERAL – DESPESAS CIP", "values": [-233350, -196249.16999999998, -258863.8, -252943.8, -299850, -271538.81, -299904, -292959.82, -301095.4, -298782.79000000004, -301095.4, -345758.49, -301095.4, -312119.86, -293829.69999999995, -281797.43, -255000, -300302.54, -255000, 0, -255000, 0, -255000, 0]}]}, "contratos": {"groups": [{"name": "TERCEIRIZADOS (MÃO DE OBRA/SERVIÇOS)", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "AGUINALDO ROBERTO CANDIDO - PRÓPRIOS", "vals": [-5800, 0, -5800, -5800, -5800, -11600, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, -5800, 0, -5800, 0, -5800, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "AMMER SERVIÇOS - REC. PRÓPRIOS", "vals": [-4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4547.31, -4182.4, -4547.31, -4487.38, -4547.31, -4547.31, -4547.31, -4182.4, -4547.31, -364.91, -4547.31, 0, -4547.31, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ANTONIO LEÃO JUNIOR - REC. PRÓPRIOS", "vals": [-4300, -4300, -4300, -4300, -4300, -4300, -4300, -4300, -4300, 0, -4300, -4300, -4300, -8600, -4300, -4300, -4300, -4300, -4300, 0, -4300, 0, -4300, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ECOSYSTEM SERVIÇOS - REC. PRÓPRIOS", "vals": [-600000, -657594.76, -600000, -619299.66, -600000, -394603.42, -600000, -395297.82, -600000, -1297364.58, -600000, -599699.67, -600000, -603950.69, -600000, -669473.07, -600000, -680353.38, -600000, 0, -600000, 0, -600000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "EDSON FLAUSINO SILVA - REC. PRÓPRIOS", "vals": [-8000, 0, -8000, -8000, -8000, -16000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, -8000, 0, -8000, 0, -8000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MAIA E SILVA - REC. PRÓPRIO", "vals": [-300000, -360023.23, -300000, -335661.31, -300000, -266555.11, -400000, -433807.31, -400000, -391335.9, -350000, -325624.64, -350000, -375469.38, -350000, -336110.52, -350000, -298080.14, -350000, 0, -350000, 0, -350000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MP SERVIÇOS MARUCHI REC. PRÓPRIOS", "vals": [-67543.03, -67543.04, -67543.03, -67543.03, -67543.03, -67543.03, -67543.03, 0, -67543.03, -135086.06, -67543.03, -67543.03, -67543.03, 0, -67543.03, -67543.03, -67543.03, -135086.06, -67543.03, 0, -67543.03, 0, -67543.03, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "SUPRASERV SERVIÇO - REC. PRÓPRIO", "vals": [-340000, -393317.44, -340000, -305259.63, -340000, -341653.87, -340000, -266881.26, -340000, -356746.68, -340000, -311894.96, -340000, -314027.86, -340000, -302546.57, -340000, -298210.27, -340000, 0, -340000, 0, -340000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "TATIANA MARQUINE MICHELETTO - REC. PRÓPRIO", "vals": [-6800, -6800, -6800, 0, -6800, -13600, -6800, -6800, -6800, 0, -6800, -13600, -6800, 0, -6800, 0, -6800, 0, -6800, 0, -6800, 0, -6800, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "L. E. DE OLIVEIRA J. TECNOLOGIA - REC. PRÓPRIOS", "vals": [-29583.33, -29583.33, -29583.33, 0, -29583.33, -59166.66, -29583.33, -29583.33, -29583.33, -29583.33, -29583.33, 0, -29583.33, -59166.66, -29583.33, -29583.33, -29583.33, -29583.33, -29583.33, 0, -29583.33, 0, -29583.33, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "ECO & SAPORE FORNECIMENTO DE ALIMENTOS", "vals": [-14283.01, -14283.01, -14283.01, 0, -14283.01, 0, -14283.01, -14283.01, -14283.01, -28566.02, -14283.01, -14283.01, -14283.01, -16010.66, -14283.01, -16010.66, -14283.01, -16010.66, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "GENTE SEGURADORA - REC. EDUCAÇÃO", "vals": [-3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -3265.1, -14071.32, -3265.1, 0, 0, -10806.24, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "LETICIA CARNEIRO - REC. EDUCAÇÃO", "vals": [-899.16, -2697.48, -899.16, 0, -899.16, -1798.32, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, -899.16, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "MAIA E SILVA - REC. EDUCAÇÃO", "vals": [-171931.14, -163674.91, -171931.14, -171931.14, -171931.14, -104550.78, -76000, -67148.44, -76000, -75960.06, -76000, -75673.13, -76000, -75960.06, -76000, -75960.06, -76000, -78458.34, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "RENOVE - SERVICOS DE LIMPEZA E CONSERVACAO - EDUCAÇÃO", "vals": [-120000, 0, -180000, -173421.36, -180000, -182253.66, -180000, -187550.54, -276000, -281589.41, -276000, -275733.18, -276000, -275850.97, -276000, 0, -276000, -550566.95, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "SUPRASERV SERVIÇOS REC. EDUCAÇÃO", "vals": [-13500, -15904.75, -13500, -13504.11, -13500, -13195.07, -13500, -13269.66, -13500, -13504.11, -13500, -13354.07, -13500, -13504.11, -13500, -13504.11, -13500, -13469.16, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "ARHO SERVIÇOS DE APOIO REC. SAÚDE", "vals": [-103808.52, -103808.52, -103808.52, 0, -103808.52, -103808.52, -103808.52, -103808.52, -103808.52, -103808.52, -103808.52, -103808.52, -111273.9, -111273.9, -111273.9, -111273.9, -111273.9, -111273.9, -111273.9, 0, -111273.9, 0, -111273.9, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "BIODIAGNOSTICA PRODUTOS - REC. SAÚDE", "vals": [-39000, -37833.32, -39000, -58933.32, -39000, -37833.32, -39000, -38655.39, -39000, -39513.12, -39000, -50313.12, -39000, -39513.12, -39000, -47613.12, -39000, -18023.76, -39000, 0, -39000, 0, -39000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "C.E.D.I.O PROP. SAÚDE", "vals": [0, 0, 0, 0, -58000, -26439.42, -58000, -73351.5, -58000, -91488.59, -58000, -54311.68, -58000, -47233.65, -58000, -60952.13, -58000, -27657.34, -58000, 0, -58000, 0, -58000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "GENTE SEGURADORA - REC SAÚDE", "vals": [-8395.96, -8395.96, -8395.96, -8395.96, -8395.96, -10325.6, -8395.96, -8395.96, -8395.96, -8395.96, -8395.96, -8395.96, -8395.96, -28538.44, -8395.96, 0, -8395.96, -20142.44, -8395.96, 0, -8395.96, 0, -8395.96, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "MAIA E SILVA APOIO A EDIFICIOS - RP SAUDE", "vals": [-180000, -167012.19, -180000, -168394.24, -180000, -184928.93, -160000, -151755.43, -160000, -157335.79, -160000, -164246.27, -160000, -155766.08, -160000, -144937.34, -160000, -80175.27, -160000, 0, -160000, 0, -160000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "RENOVE - SERVIÇOS DE LIMPEZA E CONSERVAÇÃO - RP SAUDE", "vals": [-166000, 0, -166000, -135064.93, -166000, -185338.48, -166000, -167799.1, -166000, -176100.04, -166000, -182335.08, -166000, -155670.87, -166000, -248107.75, -166000, -180405.04, -166000, 0, -166000, 0, -166000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "SANTA CASA PREST. SERVIÇOS UBS - PRÓP. SAÚDE", "vals": [-148000, -148777.18, -150000, -150020.32, -182000, -182453.6, -182000, 0, -182000, -423651.44, -182000, -204200.72, -182000, 81942.72, -182000, 0, -182000, -139024.67, -140000, 0, -140000, 0, -140000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "SANTA CASA UPA - REC PRÓPRIO", "vals": [-874871, -1026071, -874871, -874871, -874871, -889342, -874871, -838871, -874871, -853271, -874871, -853271, -874871, -661213, -874871, -797942, -874871, 0, -840000, 0, -840000, 0, -840000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "WL SERVIÇOS RADIO REC. SAÚDE 15%", "vals": [-54000, -39684.3, -54000, 0, -54000, 0, -54000, -14910.7, -54000, -50961.3, -54000, -45752.4, -54000, -43819.2, -54000, -45985.1, -54000, -49923.1, -54000, 0, -54000, 0, -54000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "DAL POZZO ADVOGADOS - PRÓPRIOS", "vals": [-16900, -16900, -16900, -16900, -16900, -16900, -16900, 0, -16900, -33800, -16900, -16900, -16900, -16900, -16900, -16900, -16900, -16900, -16900, 0, -16900, 0, -16900, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "MODELO INFORMATICA LTDA - SAÚDE", "vals": [-4212.8, 0, -4212.8, 0, -4212.8, 0, -4212.8, -3532.16, -4212.8, -4212.8, -4212.8, -4212.8, -4212.8, 0, -4212.8, 0, -4212.8, 0, -4212.8, 0, -4212.8, 0, -4212.8, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "VELOZ TECNOLOGIA REC. PRÓPRIO", "vals": [-15000, -4229.94, -15000, -3861.21, -15000, -9607.67, -15000, -23320.48, -15000, -44475.35, -15000, -10670.56, -15000, -2178, -15000, 0, -15000, 0, -15000, 0, -15000, 0, -15000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "VELOZ TECNOLOGIA - REC. EDUCAÇÃO", "vals": [-1500, -848.04, -1500, -639.36, -1500, -2284.59, -1500, -4481.31, -1500, -96.85, -1500, -1102.5, -1500, -1424.58, -1500, -257.68, -1500, 0, -1500, 0, -1500, 0, -1500, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "VELOZ TECNOLOGIA - REC SAÚDE", "vals": [-118.8, -118.8, -92.4, -92.4, -3357.99, -3357.99, -12995.34, -12995.34, -3400, 0, -3400, -14614.19, -3400, -7629.6, -3400, -5174.4, -3400, -1862.49, -3400, 0, -3400, 0, -3400, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "V2 INTEGRADORA REC. PRÓPRIO", "vals": [-3103.98, -3019.31, -3103.98, -3006.76, -3103.98, -2740.27, -3103.98, -2495.71, -3103.98, -2492.58, -3103.98, -2495.72, -3103.98, -2545.88, -3103.98, -2417.33, -3103.98, -2743.41, -3103.98, 0, -3103.98, 0, -3103.98, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "V2 INTEGRADORA DE SOLUÇÕES E IMPORTAÇÕES - EDUCAÇÃO", "vals": [-2539.59, -2411.05, -2539.59, -2423.59, -2539.59, -2357.74, -2100, -2163.35, -2100, -2069.29, -2100, -2072.43, -2100, -1975.23, -2100, -2163.35, -2100, -2269.95, -2100, 0, -2100, 0, -2100, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "V2 INTEGRADORA DE SOLUÇÕES E IMPORTAÇÕES - RP SAUDE", "vals": [-1450, -1674.25, -1450, -1693.06, -1450, -1602.14, -1450, -1323.1, -1450, -1326.23, -1450, -1363.86, -1450, -1332.5, -1450, -1426.56, -1450, -1599, -1450, 0, -1450, 0, -1450, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ABACUS CONSULTORIA", "vals": [-7380, -7380, -7380, 0, -7380, -14760, -7380, -7380, -7380, -7380, -7380, -7380, -7380, -7380, -7380, 0, -7380, 0, -7380, 0, -7380, 0, -7380, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "ABACUS CONSULTORIA - REC. EDUCAÇÃO", "vals": [-6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6266.07, -6425, -6266.07, 0, -6266.07, 0, -6266.07, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ANGRA EDUCAÇÃO E CULT. REC. PRÓPRIO", "vals": [-18826.38, -18826.38, -18826.38, -18826.13, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -15061.12, -12237.16, -15061.12, -12964.7, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MENDES PRODUÇÕES - REC. PRÓPRIOS", "vals": [-41000, -42403.3, -41000, -33922.64, -41000, -33922.64, -80000, -57323.3, -80000, -42403.3, -80000, -82309.71, -80000, -79329.97, -80000, -111743.05, -80000, -49829.97, -50000, 0, -50000, 0, -50000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "GRABOSKI - ADVOGADOS ASSOCIADOS REC. EDUCAÇÃO", "vals": [-13800, 0, -13800, -13800, -13800, -27600, -13800, -13800, -13800, -13800, -13800, -13800, -13800, -17020, -13800, -10983.42, -13800, -14326.1, -13800, 0, -13800, 0, -13800, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "EXATA CONSULTORIA EM GESTÃO HOSPITALAR - RP SAUDE", "vals": [0, 0, 0, 0, 0, 0, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, -6900, 0, -6900, 0, -6900, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "FUNDAÇÃO DE APOIO AO DES. REC. PRÓPRIOS", "vals": [-7000, -7000, -7000, 0, -7000, -14000, -7000, -7000, -7000, -7000, -7000, 0, -7000, -14000, -7000, -7000, -7000, -7000, -7000, 0, -7000, 0, -7000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MADALHANO & NUNES REC. PRÓPRIO", "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -137079.43, -137079.43, -220000, -218453.89, -220000, -242860.15, -220000, -148647.49, -150000, 0, -150000, 0, -150000, 0]}], "subtotal": [-3285640.36, -3272016.83, -3347640.36, -3125112.42, -3437640.36, -3122002.2, -3421709.2199999997, -2842512.7, -3517709.2199999997, -4574786.28, -3467709.2199999997, -3411599.9, -3475174.5999999996, -2953783.79, -3475174.5999999996, -3007989.16, -3471909.5, -2776432.4499999997, -3014356.33, -364.91, -3014356.33, 0, -3014356.33, 0]}, {"name": "TRANSPORTE / FROTA", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ABASTECIMENTO COMBUSTÍVEL", "vals": [-30000, -29829.77, -230000, -247373.85, -230000, -210668.73, -230000, -217465.4, -230000, -142294.79, -230000, -315252.2, -230000, -148069.13, -230000, -232508.45, -230000, -166781.69, -160000, -22609.82, -160000, 0, -160000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "TRANSPARKLIMP REC. PRÓPRIOS", "vals": [-210000, 0, -210000, -578365.8, -210000, -184087.27, -210000, -212344.5, -210000, -212344.5, -210000, -356508.72, -210000, -279253.09, -210000, -344398.69, -210000, -277582.69, -270000, 0, -270000, 0, -270000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "ABASTECIMENTO COMBUSTIVEL - REC. EDUCAÇÃO", "vals": [-20000, 0, -20000, -8509.17, -20000, -16508.18, -20000, -11691.17, -20000, -2064.44, -20000, -51486.18, -20000, -16704.62, -20000, -14138.4, -20000, -27704.17, 0, -2335.57, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "COOPERATIVA DE TRAB. DE COND. REC. EDUC", "vals": [0, 0, 0, 0, -193777.78, -30473.01, -193777.78, -213419.32, -193777.78, -156611.36, -193777.78, -364343.22, -193777.78, -109654.83, -193777.78, -196460.21, -193777.78, -238692.38, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "ABASTECIMENTO COMBUSTÍVEL REC. SAÚDE", "vals": [-85000, 0, -85000, -90169.55, -85000, -84829.1, -85000, -43419.07, -85000, -5963.07, -85000, -122620.78, -85000, -52408.3, -85000, -30184.47, -85000, -1048.18, -50000, -741.56, -50000, 0, -50000, 0]}], "subtotal": [-345000, -29829.77, -545000, -924418.3700000001, -738777.78, -526566.29, -738777.78, -698339.46, -738777.78, -519278.16000000003, -738777.78, -1210211.0999999999, -738777.78, -606089.9700000001, -738777.78, -817690.22, -738777.78, -711809.11, -480000, -25686.95, -480000, 0, -480000, 0]}, {"name": "CONTRATOS ESSENCIAIS (INFRAESTRUTURA)", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "APOIO ASSESSORIA IMOBILIARIA - PRÓPRIOS", "vals": [-7573, -7573, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, -6231, 0, -6231, 0, -6231, 0, -6231, 0, -6231, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "CONDOMINIO BOULEVARD SHOPPING - REC. PRÓPRIOS", "vals": [-890, 0, -890, -836.46, -890, -825.96, -890, -1717.16, -890, 0, -890, -845.48, -890, -1795.28, -890, 0, -890, -963.48, -890, 0, -890, 0, -890, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "INTEGRATIVA NEG. IMOBILIARIOS LTDA ME - REC. PRÓPRIOS", "vals": [-3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, -3580.77, 0, -3580.77, 0, -3580.77, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "IVONE ALBANO SIMÕES", "vals": [-6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, -6500, 0, -6500, 0, -6500, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "LUIZ ANTONIO CAVARIANNI - REC. PRÓPRIOS", "vals": [-538.73, -1616.19, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, -538.73, 0, -538.73, 0, -538.73, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "ALUGUEIS", "desc": "ROSSI EMPREENDIMENTO IMOBILIARIOS - PRÓPRIOS", "vals": [-82414.38, -82414.38, -82414.38, -82414.38, -82414.38, -82414.38, -82414.38, -81862.4, -82414.38, -70402.8, -82414.38, -96782.27, -82414.38, -92027.68, -82414.38, -78781.02, -82414.38, -78781.02, -82414.38, 0, -82414.38, 0, -85000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "CORREIOS", "desc": "EMP BRAS DE CORREIOS E TELEGRAFOS - REC. PRÓPRIO", "vals": [-11500, -13033.93, -11500, -15235.8, -11500, -1845.04, -11500, -4881.24, -42000, -35992.28, -42000, -34687.45, -42000, -44969.25, -42000, -51685.59, -42000, -10533.86, -42000, 0, -42000, 0, -42000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "EMPRESA BRAS. DE CORREIOS EDUCAÇÃO", "vals": [0, 0, 0, 0, -14000, 0, -14000, 0, -14000, 0, -14000, -80364.62, -14000, 0, -14000, -43330.89, -14000, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "ALUGUEIS", "desc": "CLUB LITERARIO REC. EDUCAÇÃO", "vals": [-16500, -8333.08, -16500, -16500, -16500, -16500, -16500, -16500, -16500, -16500, -16500, -16500, -18100, -18100, -18100, -18100, -18100, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "EMPRESA BRASILEIRA DE CORREIOS - REC. SAÚDE", "vals": [0, 0, 0, 0, 0, 0, 0, 0, -20620, 0, -20620, -43325.25, -20620, 0, -20620, 0, -20620, -44963.61, -20620, 0, -20620, 0, -20620, 0]}, {"fonte": "SAÚDE 15%", "grupo": "ALUGUEIS", "desc": "APOIO ASSESSORIA IMOBILIARIA - SAÚDE", "vals": [-7267, -13702, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, -7267, 0, -7267, 0, -7267, 0]}, {"fonte": "SAÚDE 15%", "grupo": "ALUGUEIS", "desc": "ROSSI EMPREENDIMENTOS - SAUDE", "vals": [-19179.89, -19179.89, -11245.49, -11245.49, -11245.49, -11245.49, -11245.49, -11245.49, -11245.49, -11245.49, -11245.49, -134325.26, -11245.49, -11544.64, -11245.49, -11544.64, -11245.49, -11544.64, -11245.49, 0, -11245.49, 0, -11245.49, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MALUFI NEG. IMOB. REC. PRÓPRIO", "vals": [-13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, -13000, 0, -13000, 0, -13000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ASSOC. MORADORES DI VITORIA", "vals": [-1400, -1400, -1400, -1400, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1300, -1000, -1300, -1000, 0, -1000, 0, -1000, 0]}], "subtotal": [-170343.77000000002, -170333.24, -161067.37, -164749.63, -174667.37, -150948.37, -174667.37, -154323.79, -225787.37, -172258.07, -225787.37, -444947.83, -227387.37, -206554.34999999998, -227387.37, -235628.64, -227387.37, -178973.11, -195287.37, 0, -195287.37, 0, -197872.99, 0]}, {"name": "CONTRATOS ESSENCIAIS (INSTITUCIONAL)", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "16554 - FIBRA OPTICA - REC. PRÓPRIO", "vals": [-22388.14, -22388.14, -22388.14, -22388.14, -22388.14, -22388.14, -22388.14, -22388.14, -22388.14, -16574.17, -22388.14, -22388.03, -22388.14, -22388.03, -22388.14, -22673.51, -22388.14, -22673.51, -22388.14, 0, -22388.14, 0, -22388.14, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CDZNET DATACENTER LTDA - REC. PRÓPRIOS", "vals": [-10014.63, -20029.26, -10014.63, 0, -10014.63, -20029.26, -10014.63, -10014.63, -10014.63, -10014.63, -10014.63, 0, -10014.63, -20029.26, -10014.63, -10014.63, -10014.63, -10014.63, -10014.63, 0, -10014.63, 0, -10014.63, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CENTRO DE GESTAO MEIOS PAGTOS - PRÓPRIOS", "vals": [-5500, -4487.81, -5500, -3472.15, -5500, -5079.49, -5500, -5781, -5500, -6517.52, -5500, -5174.53, -5500, -6962.14, -5500, -3176.34, -5500, -4485.13, -5500, 0, -5500, 0, -5500, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "COMPANHIA DE PROCESSAMENTO - POUPA TEMPO. REC. PRÓPRIO", "vals": [-23000, -78382.99, -23000, -23128.9, -23000, -26848.86, -23000, -26621.84, -23000, -44036.27, -23000, -20081.06, -23000, -30223.05, -23000, -41167.77, -23000, -18596.8, -23000, 0, -23000, 0, -23000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CONTROL RISK MONITORAMENTO - REC PROP.", "vals": [-7570.51, -7106.28, -7570.51, -7106.28, -7570.51, -7141.99, -7570.51, -7106.28, -7570.51, -7177.7, -7570.51, -7320.63, -7570.51, -7033.52, -7570.51, -7142.08, -7570.51, -7177.79, -7570.51, 0, -7570.51, 0, -7570.51, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "SOLUÇÃO RADIOLOGIA - REC. SAÚDE", "vals": [-13933.64, 0, -13933.64, -27867.28, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, -13933.64, 0, -13933.64, 0, -13933.64, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "SERPRO - REC. PRÓPRIO", "vals": [-12000, 0, -12000, -437, -12000, -13397.28, -12000, -11297.4, -12000, -12779.4, -12000, -11029.12, -12000, -8857.04, -12000, -7960.12, -12000, -5431.36, -12000, 0, -12000, 0, -12000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "THYSSENKRUPP ELEVADORES - PRÓPRIOS", "vals": [-665, -643.48, -665, 0, -665, 643.48, -665, -1286.96, -665, -1286.96, -665, -643.48, -665, -643.48, -665, 0, -665, 0, -665, 0, -665, 0, -665, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "VIA FIBRA - REC. PRÓPRIOS", "vals": [-28844.76, -28844.71, -28844.76, 0, -28844.76, -58069.1, -28844.76, -29224.39, -28844.76, -29351.8, -28844.76, -15783.96, -28844.76, -26714.25, -28844.76, -47407.06, -28844.76, -29604.12, -28844.76, 0, -28844.76, 0, -28844.76, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "FIBRA OPTICA RIO PRETO - EDUCAÇÃO", "vals": [-2525.49, -2525.49, -2525.49, -2525.49, -2525.49, -2525.49, -2525.49, -2525.49, -2525.49, -2525.4, -2525.49, -2525.4, -2525.49, -2525.4, -2525.49, -2525.4, -2525.49, -2525.4, -2525.49, 0, -2525.49, 0, -2525.49, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "FIBRA OPTICA RIO PRETO - RP SAUDE", "vals": [-1669.04, -1669.04, -1669.04, -1669.04, -1669.04, -1669.04, -1669.04, -1669.04, -1669.04, -1668.96, -1669.04, -1668.96, -1669.04, -1668.96, -1669.04, -1668.96, -1669.04, -1668.96, -1669.04, 0, -1669.04, 0, -1669.04, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ACQUASERVIÇE TECNOLOGIA - REC. PRÓPRIOS", "vals": [-4980, -4980, -4980, -4980, -4980, -4980, -4980, -4980, -4980, -4980, -4980, 0, -4980, -4980, -4980, -9960, -4980, -4980, -4980, 0, -4980, 0, -4980, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ASSIST SOLUÇÕES REC. PRÓPRIO", "vals": [-32285.82, -32285.82, -32285.82, 0, -32285.82, -64571.64, -32285.82, -32285.82, -32285.82, -32285.82, -32285.82, 0, -32285.82, -64571.64, -32285.82, -32285.82, -32285.82, -45000, -45000, 0, -45000, 0, -45000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "EICON CONTROLES", "vals": [-77320.26, -77320.26, -77320.26, 0, -77320.26, -77320.26, -77320.26, 0, -119000, -331368.27, -119000, -130360, -119000, 0, -119000, -250826.67, -119000, -120000, -119000, 0, -119000, 0, -119000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "FERRANTE COMERCIO - REC. PRÓPRIO", "vals": [-4294.97, -4294.97, -4294.97, -4294.97, -4294.97, -9524.97, -4294.97, -6909.97, -4294.97, -6909.97, -4294.97, -6909.97, -4294.97, -6909.97, -4294.97, -4294.97, -4294.97, 0, -4294.97, 0, -4294.97, 0, -4294.97, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "INMOV - INTELIGENCIA EM MOVIMENTO LTDA - REC. PRÓPRIOS", "vals": [-45725.47, -45725.47, -45725.47, -45725.47, -45725.47, 0, -45725.47, -91450.94, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, -45725.47, 0, -45725.47, 0, -45725.47, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "INSIGHT INFORMATICA LTDA - RECURSO PRÓPRIO", "vals": [-2833.33, -2833.33, -2833.33, 0, -2833.33, -5666.66, -2833.33, -2833.33, -2833.33, -2833.33, -2833.33, 0, -2833.33, -5666.66, -2833.33, 0, -2833.33, 0, -2833.33, 0, -2833.33, 0, -2833.33, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "INSTAR TECNOLOGIA REC. PRÓPRIO", "vals": [-6019.51, -12039.02, -6019.51, -560, -6019.51, -7139.51, -6019.51, -6579.51, -6019.51, -6579.51, -6019.51, -560, -6019.51, -12599.02, -6019.51, -6579.51, -6019.51, -6783.09, -6019.51, 0, -6019.51, 0, -6019.51, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "INTEGRATIVA TECNOLOGIA E GESTÃO - RECURSO PRÓPRIO", "vals": [-19256.5, -19256.5, -19256.5, -38513, -19256.5, -19256.5, -19256.5, 0, -19256.5, -38513, -19256.5, -38890.43, -19256.5, -19633.93, -19256.5, -43587.32, -19256.5, -23953.39, -19256.5, 0, -19256.5, 0, -19256.5, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "METABIT SISTEMA REC. PRÓPRIOS", "vals": [-3527.1, 0, -3527.1, -7054.2, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, -3527.1, 0, -3527.1, 0, -3527.1, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MGCON SOLUÇÕES INTELIGENTES - RECUSO PRÓPRIO", "vals": [-22500, -50153.12, -22500, 0, -22500, -88886.44, -22500, -27653.12, -22500, 0, -22500, -27653.12, -22500, -125544.82, -22500, -32806.24, -22500, -22500, -22500, -5153.12, -22500, 0, -22500, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "SMAR-APD - INFORMÁTICA - LTDA - PRÓPRIOS", "vals": [-78952.67, -78952.67, -78952.67, -6334.98, -78952.67, -157905.34, -78952.67, -78952.67, -78952.67, -78952.67, -78952.67, 0, -78952.67, -157905.34, -78952.67, -73745.45, -78952.67, -67345.22, -78952.67, 0, -78952.67, 0, -78952.67, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "SPDBRASIL SOFTWARES REC. PRÓPRIOS", "vals": [-18050.2, -36100.4, -18050.2, 0, -18050.2, -36100.4, -18050.2, 0, -18050.2, -37316.98, -18050.2, 0, -18050.2, -18658.49, -18050.2, -18658.49, -18050.2, -18658.49, -18050.2, 0, -18050.2, 0, -18050.2, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "ASSIST SOLUÇÕES REC. PRÓP. SAÚDE", "vals": [-65000, -65000, -65000, -65000, -65000, -65000, -65000, -65000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}], "subtotal": [-508857.04, -595018.76, -508857.04, -261056.90000000002, -508857.04, -710317.63, -508857.04, -452021.27, -485536.77999999997, -734858.57, -485536.77999999997, -354174.89999999997, -485536.77999999997, -606701.21, -485536.77999999997, -679666.5499999998, -485536.77999999997, -474584.1, -498250.9599999999, -5153.12, -498250.9599999999, 0, -498250.9599999999, 0]}, {"name": "OBRAS/URBANIZAÇÃO", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "MACHEN ENGENHARIA E CONST. REC. PRÓPRIOS", "vals": [-31706.3, -31706.3, -31706.3, -31706.3, -40000, -38311.78, -40000, -39632.87, -40000, -39632.87, -40000, -41979.14, -40000, -41139.56, -40000, -42818.72, -40000, -41979.14, -40000, 0, -40000, 0, -40000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "PLANERGI URBANIZAÇÃO REC. PRÓPRIO", "vals": [-650000, -330178.94, -650000, -706478.69, -650000, -562365.2, -320000, -315753.33, -200000, -197691.1, -200000, -239223.6, -200000, -98214.23, 0, -45080.4, 0, -29833.33, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "RADDAR CONSULTORIA EM DESIGN", "vals": [0, 0, 0, 0, -64000, -64000, -64000, -64000, -64000, -64000, -64000, 0, -64000, -64000, -64000, -64000, -64000, 0, -64000, 0, -64000, 0, -64000, 0]}], "subtotal": [-681706.3, -361885.24, -681706.3, -738184.99, -690000, -600676.98, -360000, -355386.2, -240000, -237323.97, -240000, -281202.74, -240000, -139353.78999999998, -40000, -87899.12, -40000, -71812.47, -40000, 0, -40000, 0, -40000, 0]}, {"name": "CONTRATOS DE LOCAÇÃO", "items": [{"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "FERRANTE COMERCIO DE RADIOCOMUNICAÇÃO - RP SAUDE", "vals": [-4143.73, -4143.73, -4143.73, -4143.73, -4143.73, -1357.77, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0, -4143.73, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "KERSIS SISTEMAS DE IMPRESSÃO - REC. SAÚDE", "vals": [-1264.16, -1264.16, -1264.16, -1264.16, -1264.16, 0, -1264.16, -1261.32, -1264.16, -1264.16, -1264.16, -2464.16, -1264.16, -1264.16, -1264.16, 0, -1264.16, -2528.32, -1264.16, 0, -1264.16, 0, -1264.16, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "ADRIMAK COMERCIO - RECURSOS PRÓPRIOS", "vals": [-16000, -9978.84, -16000, -13132.63, -16000, -17400.13, -16000, -25274.75, -16000, -9827.35, -16000, -8005.08, -16000, -19621.67, -16000, -22409.52, -16000, -10853.67, -16000, -2720.6, -16000, 0, -16000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "ADRIMAK COMERCIO E LOC. REC. PROP. EDUCAÇÃO", "vals": [-15000, -17473.27, -15000, 0, -15000, -12146.42, -15000, -14044.39, -15000, -5880.66, -15000, 0, -15000, -37002.12, -15000, -9822.04, -15000, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "ADRIMAK COMERCIO - REC. PROPRIO SAÚDE", "vals": [-16000, -13615.7, -16000, 0, -16000, -29767.92, -16000, -1549.7, -16000, 0, -16000, 0, -16000, -41186.28, -16000, -14329.8, -16000, -2483.13, -16000, 0, -16000, 0, -16000, 0]}], "subtotal": [-5407.889999999999, -5407.889999999999, -5407.889999999999, -5407.889999999999, -5407.889999999999, -1357.77, -5407.889999999999, -1261.32, -5407.889999999999, -1264.16, -5407.889999999999, -2464.16, -5407.889999999999, -1264.16, -5407.889999999999, 0, -5407.889999999999, -2528.32, -5407.889999999999, 0, -5407.889999999999, 0, -5407.889999999999, 0]}, {"name": "DEMAIS FORNECEDORES (DIVERSOS)", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS FORNECEDORES", "desc": "DEMAIS FORNECEDORES RC PRÓPRIOS", "vals": [-3200000, -2686275.73, -3200000, -5537740.69, -3200000, -3063368.09, -3200000, -3447393.63, -3200000, -3147314.92, -3200000, -3155328.88, -3200000, -2958835.84, -3200000, -3583451.6, -3200000, -1714389.58, -500000, -30930.22, -500000, 0, -300000, 0]}, {"fonte": "EDUCAÇÃO 25%", "grupo": "DEMAIS FORNECEDORES", "desc": "DEMAIS FORNECEDORES EDUCAÇÃO", "vals": [-90000, -84865.29, -40000, -34896, -300000, -97818.16, -300000, -423095.36, -300000, -190340.74, -300000, -302624.35, -300000, -595755.73, -300000, -307931.92, -300000, -80826.93, -30000, 0, -30000, 0, -30000, 0]}, {"fonte": "SAÚDE 15%", "grupo": "FORNECEDORES SAÚDE", "desc": "DEMAIS FORNECEDORES RP SAUDE", "vals": [-750000, -145493.2, -750000, -361215.21, -750000, -570069.58, -750000, -1119847.69, -750000, -501139.36, -750000, -385976.57, -750000, -597227.42, -750000, -434209.43, -750000, -404205.94, 0, -1663.95, 0, 0, 0, 0]}, {"fonte": "CIP", "grupo": "DEMAIS FORNECEDORES", "desc": "DEMAIS INVESTIMENTOS CIP", "vals": [-155000, -61887.39, -155000, -190545.04, -155000, -42380.27, -155000, -133500.72, -155000, -150947.78, -155000, -470426.01, -155000, -56820.49, -155000, -35348.95, -155000, -106117.44, 0, 0, 0, 0, 0, 0]}], "subtotal": [-4195000, -2978521.6100000003, -4145000, -6124396.94, -4405000, -3773636.1, -4405000, -5123837.399999999, -4405000, -3989742.8, -4405000, -4314355.81, -4405000, -4208639.4799999995, -4405000, -4360941.9, -4405000, -2305539.89, -530000, -32594.170000000002, -530000, 0, -330000, 0]}], "totals": [{"label": "TOTAL GERAL - CONTRATOS", "values": [-9191955.36, -7413013.34, -9394678.96, -11343327.14, -9960350.44, -8885505.34, -9614419.3, -9627682.14, -9618219.04, -10229512.010000002, -9568219.04, -10018956.44, -9577284.42, -8722386.75, -9377284.42, -9189815.59, -9374019.32, -6521679.449999999, -4763302.55, -63799.15000000001, -4763302.55, 0, -4565888.17, 0]}]}, "receitas": {"groups": [{"name": "RECURSOS PRÓPRIOS", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "001 - IMPOSTOS S/ PREDIAL URBANO", "vals": [42355.2, 258436.03, 3328000, 2591034.01, 942964.48, 1075560.82, 942964.48, 919937.36, 942964.48, 1478634.53, 942964.48, 878653.3, 942964.48, 920895.14, 942964.48, 905734.38, 942964.48, 833136.16, 942964.48, 0, 942964.48, 0, 942964.48, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "002 - IMP. S/PROP.TERRITORIAL URBANA", "vals": [34860, 165642.11, 2488340, 2056606.08, 577680, 699208.69, 577680, 552500.52, 577680, 565015.17, 577680, 613033.49, 577680, 611225.73, 577680, 642054.31, 577680, 527248.43, 577680, 0, 577680, 0, 577680, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "003 - IMP. RENDA PESSOA JURIDICA", "vals": [168153.8, 212311.29, 385996.4, 313310.99, 313120, 247800.22, 330873.6, 226641.36, 395428, 324012.29, 291919.8, 294996.53, 325097.6, 345944.84, 335293, 380301.98, 303399.6, 145521.23, 387999, 0, 197991.4, 0, 364727.8, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "004 - IMP. RENDA PESSOA FÍSICA", "vals": [636548.2, 532576.52, 672997, 585878.79, 694077.4, 853430.91, 1138641.4, 755223.35, 885322.6, 748911.31, 821860.4, 770334.09, 789095.8, 754940.33, 811302.8, 738203.27, 819984.2, 147224.95, 872369.4, 0, 857624.8, 0, 1600176, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "005 - ITBI", "vals": [745521, 938069.02, 1445283, 1357162.67, 794461.5, 1244199.39, 1209411, 630070.82, 539973, 464800.52, 490465.5, 794649.17, 552069, 851316.77, 854532, 836525.87, 848484, 446645.9, 975786, 0, 881863.5, 0, 1162150.5, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "006 - ISS", "vals": [3804180, 4418255.52, 6978111, 7000325.63, 3509091, 3784327.18, 4000000, 3798055.48, 5264189.38, 4655649.41, 3843863.38, 3764990.67, 3983912.38, 3966564.69, 6443462.38, 6095450.75, 4242863.38, 3719506.69, 4565438.38, 0, 4997771.38, 0, 4474454.38, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "012 - TAXA DE LICENÇA PARA EXECUÇÃO DE OBRAS.", "vals": [28200.9, 129663.29, 74571, 75307.34, 24983.7, 149801.35, 53333.7, 43885.39, 42320.6, 166338.65, 79699.9, 62052, 67308.5, 66204.1, 78101.1, 45604.96, 38969, 59662.97, 67407.2, 0, 69157.2, 0, 75947.2, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "013 - TX UTIL AREA DOM PUBLICO", "vals": [282.15, 0, 492.7, 226.03, 256.27, 2485.09, 200.08, 575, 769.39, 396.39, 3287.18, 548.58, 1162.7, 559.53, 394.92, 346.73, 452.03, 136.94, 465.7, 0, 98.3, 0, 138.58, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "015 - TAXA DE LIMPEZA IMOVEL URBANO", "vals": [5416.66, 6378.49, 5416.66, 3482.78, 5416.66, 5633.59, 5416.66, 9768.7, 5416.66, 21010.25, 5416.66, 3611.41, 5416.66, 7164.01, 5416.66, 9907.3, 5416.66, 2284.07, 5416.66, 0, 5416.66, 0, 5416.74, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0195 - M/J TX FISCALIZAÇÃO", "vals": [215.83, 166.28, 46.36, 174.08, 656.78, 611.02, 624.95, 1309.27, 532.49, 3328.5, 785.88, 1635.93, 649.93, 2314.43, 1642.71, 2483.56, 1281.26, 3104.23, 771.7, 0, 1472.07, 0, 1320.04, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0205 - DIV ATIVA TX FISCALIZAÇÃO", "vals": [40444.16, 48268.04, 17740.3, 36209.43, 23134.21, 11334.17, 19808.64, 5514.29, 17469.74, 6865.54, 5529.57, 35197.7, 6174.43, 52916.21, 8069.11, 11572.8, 8657.35, 6490.93, 7816.41, 0, 9412.79, 0, 25743.29, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0215 - M/J DIV ATIVA TX DE FISCALIZAÇÃO", "vals": [9250.9, 4426.39, 5509.9, 4494.05, 5837.95, 2412.99, 5626.35, 1620.07, 7452.15, 1732.62, 1994.9, 6395.13, 1794.5, 8871.32, 1028.9, 3546.61, 2887.55, 1739.53, 2787.05, 0, 1766.7, 0, 4063.15, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "022 - ALUGUEIS", "vals": [13942.75, 568.83, 13593.27, 568.83, 13593.27, 568.83, 13593.27, 568.83, 10981.62, 568.83, 16493.62, 568.83, 3662.82, 3368.83, 3662.82, 3368.83, 906.87, 568.83, 3662.82, 0, 906.87, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0225 - TAXA DE CONTROLE E FISCALIZAÇÃO AMBIENTAL - PRINCI", "vals": [951.4, 11184.41, 0, 0, 959.2, 0, 591.19, 3739.03, 9192.23, 4370.65, 592.54, 0, 3339.14, 645.46, 977.23, 4370.9, 4600.99, 2381.65, 3492.19, 0, 3303.89, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "023 - DIVIDENDOS", "vals": [7.83, 2, 7.81, 2, 7.81, 2, 0, 3.39, 0.63, 9.03, 0, 0, 4.17, 3.14, 0, 0, 0, 0, 0, 0, 0, 0, 21.75, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "029 - TX DE PUBLICIDADE COMERCIAL", "vals": [538.88, 4041.74, 13747.52, 55330.33, 74207.84, 16431.08, 16247.84, 15246.57, 14298.72, 17931.95, 11316.8, 17522.51, 10182.72, 18946.07, 10180.64, 14299.45, 3065.28, 7833.48, 1472.96, 0, 1972, 0, 2768.8, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "030 - TX DE FUNC DE ESTAB EM HOR ESP", "vals": [333.96, 2098.11, 7513.44, 84921.98, 433703.16, 356849.15, 43416.12, 39139, 48097.5, 41176.81, 39627.72, 38048.59, 38968.38, 40032.71, 43088.76, 38775.47, 2717.88, 4841.67, 1249.38, 0, -44.88, 0, 1328.58, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "041 - PRESTAÇÃO DE SERVIÇO PATRULHA AGRICOLA", "vals": [401.96, 2980.08, 58.24, 1443.37, 625.15, 2632.26, 0, 561.46, 832.46, 9795.45, 0, 820.61, 376.01, 5951.66, 2043.65, 5456.7, 252.33, 900, 442.37, 0, 1293.27, 0, 210.73, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "044 - CTA-PTE DO FDO PART DOS MUNICI", "vals": [5229315, 5941232.49, 7016751, 7469909.09, 4620798, 4523482.07, 4695579, 5325960.72, 5989851, 6446103.39, 6152391, 6791558.88, 3776724, 4274118.09, 4982859, 5731601.47, 4023117, 2894510.05, 4240908, 0, 5764815, 0, 6506892, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "045 - CTA-PTE DO IMP S/A - ITR", "vals": [120425, 58117.19, 4202.5, 10082.27, 3427.5, 26981.09, 3235, 22750.57, 6980, 30620.9, 885, 111689.18, 82922.5, 12879.41, 75125, 29077.19, 140920, 73076.89, 1853577.5, 0, 117045, 0, 91255, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "047 - COTA PARTE ROYALTIES LEI 7990/89", "vals": [108173.04, 94578.95, 119293.76, 97202.35, 115545.6, 112407.51, 111549.92, 109012.25, 132102.24, 173879.94, 97050.96, 197067.6, 117168.08, 206212.91, 101073.84, 131907.71, 130142.48, 20020.3, 101107.84, 0, 107309.44, 0, 119474.64, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "069 - CTA-PTE DO ICMS", "vals": [5941580.4, 6581839.79, 6332030.4, 4194374.95, 6469633.2, 9853291.76, 6968011.8, 6307676.58, 6450316.2, 6679960.99, 4889338.2, 8305386.84, 8852857.8, 6749785.55, 6532269.6, 7240524.83, 7887665.4, 4971479.42, 6499882.8, 0, 5988434.4, 0, 9387979.8, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0693 - DIV ATIVA TARIFAS ORGÃO AMBIENTAL", "vals": [384.42, 2617.45, 1147, 881.13, 399.74, 0, 0, 0, 0, 579.23, 0, 4827.1, 0, 368.6, 0, -154.94, 0, 368.6, 0, 0, 68.84, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "070 - CTA-PTE DO I.P.V.A.", "vals": [7096352.2, 7603021.7, 2816422, 2916686.05, 2270656.5, 2542234.55, 1930672.1, 2098717.93, 1790764.5, 1804993.26, 611456.3, 581396.31, 611192.4, 642339, 653497.6, 756759.48, 674853.2, 646984.88, 581676.2, 0, 484520.4, 0, 777936.6, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0703 - TARIFAS MULTA/JUROS DIV ATIVA ORGÃO AMBIENTAL", "vals": [31.8, 294.2, 118.6, 149.79, 49.6, 0, 0, 0, 0, 165.59, 0, 1461.74, 0, 125.3, 0, -44.28, 0, 125.3, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "071 - CTA-PTE DO IMP.PROD.IND. - IPI", "vals": [39888.45, 53223.51, 46308.78, 50832.95, 53419.59, 45522.62, 56902.23, 48976.46, 45150.21, 45598.03, 58125.06, 71686.31, 53698.68, 67138.05, 47436.48, 62520.5, 57752.1, 49405.92, 57537.9, 0, 52953.39, 0, 60827.13, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "072 - CONT. INTERV. DOM. ECON - CIDE", "vals": [17493.84, 18767.46, 0, 0, 0, 18685.39, 16146.48, 14810.6, 0, 0, 0, 0, 17676.96, 16433.26, 0, -18685.39, 0, 0, 18682.72, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0775 - CERTIFICADO DE DISPENSA DE LICENÇA CDL", "vals": [0, 0, 0, 0, 100, 0, 100, 1037.34, 0, 268.94, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0, 0, 0, 100, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0785 - AUTORIZAÇÃO DE CORTE DE ARVORE ISOLADA", "vals": [0, 0, 0, 2305.2, 0, 768.4, 497.24, 38.42, 994.47, 0, 0, 0, 0, 0, 497.24, 0, 497.24, 0, 1516.57, 0, 497.24, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0805 - CERTIDÃO NEGATIVA DE DEBITOS AMBIENTAIS", "vals": [0, 0, 0, 1229.44, 0, 614.72, 0, 0, 0, 1075.76, 0, 0, 200, 0, 0, 307.36, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0815 - TARIFAS ORGÃO AMBIENTAL - MULTAS/JUROS", "vals": [0.49, 0, 53.39, 443.37, 75.27, 31.43, 39.92, 543.33, 37.61, 92.74, 36.57, 78.77, 4.19, 26.4, 142.36, 84.58, 62.99, 14.33, 334.35, 0, 172.47, 0, 40.39, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "0845 - SERVIÇOS DE TRANSPORTE DE PASSAGEIROS OU MERCADORI", "vals": [78002.2, 0, 72220.25, 121240.41, 74344.15, 60273.23, 64142.7, 59047.15, 74779.6, 65159.03, 69770.55, 0, 71121.2, 117390.7, 73519.9, 57250.58, 55305.25, 46072.48, 76548.45, 0, 73540.3, 0, 66705.45, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "096 - MULTAS JUROS EXERCICIO-IPTU .", "vals": [694.67, 824.09, 0, 0, 2659.29, 2688.6, 2408.37, 3518.85, 3304.65, 18907.78, 3121.35, 5530.51, 3719.07, 9991.29, 4301.29, 9919.5, 4926.91, 4601.96, 5179.71, 0, 7519.24, 0, 13165.45, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "097 - MULTA - ISS", "vals": [20560.54, 34012.75, 19048.38, 40781.73, 15655.38, 36201.59, 14093.04, 30202.12, 16049.8, 21353.06, 19091.8, 36193.85, 23813.66, 57173.82, 28717.26, 38858.65, 20341.62, 37445.04, 36002.98, 0, 21465.34, 0, 25160.2, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "100 - MUL/JUR MORA DIV AT IPTU", "vals": [47339, 79464.82, 58506, 60201.22, 46770, 60792.29, 121639, 49631.23, 47508, 61016.42, 27062, 241054.95, 63216, 129310.29, 386114, 157065.17, 36492, 38102.3, 35514, 0, 76634, 0, 53206, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "101 - JUROS MORA DIV AT ISS", "vals": [26608.25, 25998.28, 13035, 22366.79, 23687.25, 69098.8, 15392.5, 28859.65, 48172, 20915.21, 13453, 24131.38, 16709, 18276.47, 18442.5, 17208.22, 20004.5, 15451.06, 19221, 0, 11500, 0, 23775, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "110 - MULTA POR AUTO DE INFRAÇÃO", "vals": [245.88, 3706.63, 502.65, 2961.6, 724.84, 3331.8, 5592.9, 6511.84, 17038.2, 3825.59, 11855.55, 10744.04, 10159.5, 12843.75, 6554.85, 6663.9, 7491.6, 5378.8, 4337.33, 0, 4685.25, 0, 5811.45, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "117 - DIVIDA ATIVA IPTU", "vals": [206508.8, 397658.72, 242076.3, 439827.56, 164205, 359801.05, 596058, 292645.76, 199522.4, 414886.12, 185963.7, 497887.26, 393636.9, 836278.85, 775330.5, 551905.18, 293765, 226871.2, 345351.2, 0, 321546.6, 0, 376035.6, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "118 - DIVIDA ATIVA DO ISS", "vals": [88548, 210858.42, 40069, 123468.54, 61826, 227856.95, 58491, 186416.73, 95574, 156208.49, 56305, 130090.9, 89248, 123129.44, 134523, 101897.09, 118714, 74333.99, 113184, 0, 46089, 0, 97429, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "155 - DED REC FUNDEB - FPM", "vals": [-1045863, -1188246.47, -1403350.2, -1493981.78, -924159.6, -904696.37, -939115.8, -1065192.11, -1197970.2, -1289220.64, -1230478.2, -1358311.75, -755344.8, -854942.31, -996571.8, -1146201.52, -804623.4, -578901.98, -848181.6, 0, -1152963, 0, -1301378.4, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "156 - DEDUCAO FUNDEB - ITR", "vals": [-24085, -11623.43, -840.5, -2016.44, -685.5, -5396.2, -647, -4550.1, -1396, -6124.17, -177, -22337.82, -16584.5, -2575.87, -15025, -5815.43, -28184, -14615.37, -370715.5, 0, -23409, 0, -18251, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "158 - DED REC FUNDEF - ICMS", "vals": [-1188316.08, -1316367.93, -1266406.08, -838874.98, -1293926.64, -1970658.33, -1393602.36, -1261535.3, -1290063.24, -1335992.18, -977867.64, -1661077.35, -1770571.56, -1349957.1, -1306453.92, -1448104.96, -1577533.08, -994295.86, -1299976.56, 0, -1197686.88, 0, -1877595.96, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "159 - DEDUCAO FUNDEB - IPVA", "vals": [-1419270.44, -1520604.29, -563284.4, -583337.22, -454131.3, -512154.32, -386134.42, -419743.53, -358152.9, -360998.58, -122291.26, -116279.24, -122238.48, -128467.78, -130699.52, -147644.5, -134970.64, -129397.01, -116335.24, 0, -96904.08, 0, -155587.32, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "160 - DED REC FUNDEB - IPI - EXPORT", "vals": [-7977.69, -10644.7, -9261.76, -10166.59, -10683.92, -9104.52, -11380.45, -9795.29, -9030.04, -9119.6, -11625.01, -14337.26, -10739.74, -13427.61, -9487.3, -12504.1, -11550.42, -9881.19, -11507.58, 0, -10590.68, 0, -12165.41, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "175 - OUTORGA", "vals": [26421.06, 35299.51, 27178.24, 33783.96, 29910.14, 76107.81, 30299.1, -12744.03, 25621.04, 26127.8, 25621.04, 33268.73, 24407.92, 29403.27, 22959.18, 29777.53, 26534.62, 31721.28, 61635.88, 0, 33751.12, 0, 5660.66, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "2435 - M/J MULTAS", "vals": [5.11, 29.99, 0.62, 22.2, 0.45, 3.7, 0.45, 41.28, 0.66, 33.91, 4.08, 98.81, 39.79, 14.8, 15.18, 39.93, 30.46, 7.68, 45.32, 0, 18.16, 0, 39.72, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "2625 - OUTROS RESSARCIMENTOS - DAEMO", "vals": [16106.14, 0, 0, 0, 23610.77, 0, 47221.54, 0, 23610.77, 0, 23007.71, 0, 23610.77, 0, 0, 0, 70832.3, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "2635 - OUTROS RESSARCIMENTOS - INSTITUTO", "vals": [0, 5164.89, 0, 5164.89, 6177.01, 5164.89, 16566.84, 5164.89, 0, 5164.89, 6018.98, 5164.89, 12353.47, 5164.89, 6176.74, 5218.08, 6176.74, 5218.08, 6176.74, 0, 6176.74, 0, 6176.74, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "2645 - OUTROS RESSARCIMENTOS - CÂMARA", "vals": [0, 0, 4625.12, 12669.96, 13559.12, 6334.98, 6779.52, 6334.98, 6779.52, 6334.98, 6779.52, 6334.98, 13559.12, 6334.98, 0, 0, 6779.52, 12800.46, 6779.52, 0, 6779.52, 0, 6779.52, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "28 - TX DE LIC FUNC DE ESTAB COMERC", "vals": [7662.5, 18813.08, 73620, 342612.21, 1272542.5, 665844.4, 203912.5, 225541.88, 211485, 293381.79, 193207.5, 243310.06, 189847.5, 266754.89, 199145, 248563.71, 38657.5, 40858.31, 28392.5, 0, 58790, 0, 22737.5, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "COMPENSAÇÃO FINANCEIRA DNPM", "vals": [1462.53, 1889.76, 2339.37, 1671.88, 1388.37, 1815.97, 2648.73, 1594.86, 1482.54, 669.16, 1570.77, 2992.45, 1549.32, 4250.59, 1666.95, 672.23, 1617.75, 619.6, 1954.08, 0, 8481.9, 0, 3837.69, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "CONCESSAO DE ESPAÇO", "vals": [97539, 30190.25, 116998.5, 30190.25, 105546, 30190.25, 106015.5, 30190.25, 106116, 30190.25, 85692, 30190.25, 566526, 513680.35, 64623, 46987.26, 40696.5, 31120.09, 41605.5, 0, 114727.5, 0, 53914.5, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "CONTRIBUIÇÃO SOCIAL LOT.", "vals": [109430, 0, 114520, 53775.78, 229045, 26887.89, 114520, 26887.89, 114520, 26887.89, 0, 26887.89, 229045, 26887.89, 114520, 26887.82, 3630800, 0, 114520, 0, 0, 0, 229080, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "FPM 1%", "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2500000, 2948086.45, 0, 0, 1300000, 2991298.66, 0, 0, 0, 0, 2600000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "MULTA POR ATO DE INFRAÇÃO DÍVIDA ATIVA M/JUROS", "vals": [4244.49, 1796.99, 3791.16, 1285.64, 1994.13, 2210.39, 918.66, 1399.9, 1106.01, 2132.78, 4101.51, 2261.02, 718.32, 1118.14, 7070.91, 1854.2, 1652.55, 4486.41, 1477.77, 0, 449.07, 0, 2475.42, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "MULTAS DE TRÂNSITO", "vals": [34837.2, 27876.49, 22774.8, 39065.26, 25121.7, 68056.66, 30918.3, 41677.03, 34929.6, 65335.43, 23971.2, 45193.25, 22578, 75366.23, 17865.3, 46024.04, 24297.9, 32701.12, 19764.9, 0, 20890.5, 0, 22050.6, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "MULTAS JUROS TX PRESTAÇAO SERVIÇOS", "vals": [20109.16, 792.67, 24228.32, 1742.78, 22400.08, 560.29, 27733.22, 1061.38, 9898.1, 1697.3, 2916.72, 942.56, 373.61, 1722.99, 18383.89, 1611.4, 1855.75, 573.3, 1547.11, 0, 678.58, 0, 874.69, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "ÔNUS DE SUCUMBÊNCIA", "vals": [421.12, 340.68, 341.16, 42.4, 896.38, 63.6, 2156.2, 413.81, 2300.96, 63.6, 1188.32, 243.94, 839.6, 372.46, 1791.6, 897.35, 1932.54, 453.8, 1736.3, 0, 2551.36, 0, 3844.46, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "OUTROS SERVIÇOS", "vals": [5.76, 1497.12, 5.07, 1790.35, 6.05, 2737.14, 10.23, 1918.32, 16.01, 4055.68, 6.1, 736.74, 10.63, 2266.34, 6.21, 598.78, 9.6, 627.76, 6.68, 0, 8.99, 0, 8.67, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "PARECER TEC. AMBIMENTAL", "vals": [323.22, 0, 0, 0, 0, 537.88, 338.39, 0, 0, 0, 0, 0, 338.39, 268.94, 0, 268.94, 0, 0, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "REMOÇÃO LIXO DOMICILIAR", "vals": [55146.4, 284309.73, 2500000, 2496086.63, 1050000, 1073102.02, 1050000, 878076.97, 1050000, 1694835.43, 1100000, 819860.84, 1050000, 820904.84, 1050000, 814156.09, 1050000, 735584.32, 1050000, 0, 1050000, 0, 1050000, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "REMOÇÃO LIXO DOMICILIAR DIV. ATIVA MULTAS/ JUROS", "vals": [19717.75, 37777.66, 20874.5, 21854.08, 29352.25, 26383.36, 6685.25, 19770.9, 28465.5, 23365.59, 18173.75, 22346.78, 17742.25, 49577.4, 27773.75, 51560.59, 18483.75, 12108.54, 19310, 0, 14979.25, 0, 28442, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "REMOÇÃO LIXO DOMICILIAR DÍVIDA AT.", "vals": [103545, 148199.06, 96544.5, 128742.2, 92972.1, 112189.76, 115975.6, 81489.93, 88008.7, 95865.11, 95184.7, 75305.22, 109198.7, 230335.24, 112327.8, 186296.42, 109228.6, 52265.67, 138645, 0, 103117.3, 0, 135252, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "REMOÇÃO LIXO DOMICILIAR MUTAS / JUROS", "vals": [424.73, 415.82, 0, 0, 971.82, 1500.96, 1059.05, 2192.86, 1147, 16214.61, 1675.11, 2972.8, 1624.61, 4775.81, 1536.19, 4466.02, 1793.92, 2462.88, 2128.84, 0, 2770.21, 0, 5068.52, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "TARIFA DE MAN ORGÃO AMBIENTAL", "vals": [0, 0, 0, 0, 49.63, 38.42, 0, 0, 24.82, 0, 50.37, 38.42, 24.82, 76.84, 25.18, 38.42, 25.18, 115.26, 0, 0, 0, 0, 0, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "TARIFAS DE DISP. RESIDUOS CONSTR.CIVIL", "vals": [10189.3, 11326.8, 9855.94, 38635.76, 14884.54, 29839.7, 10522.65, 52588.41, 11808.22, 23890.87, 10049.95, 34508.2, 9809.83, 15800.18, 18933.38, 7295.26, 10725.65, 5617.83, 14452.72, 0, 11355.24, 0, 12412.58, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "TAXAS PREST. SERVIÇOS DIVIDA ATIVA", "vals": [3386.75, 6045.7, 3381.15, 10724.25, 3766.7, 4510.23, 6102, 7883.5, 4020.6, 7261.57, 3953.6, 4972.98, 692.65, 10260.03, 15544, 8037.76, 3802, 3680.31, 1742.4, 0, 958.1, 0, 2650.05, 0]}, {"fonte": "RECURSOS PRÓPRIOS", "grupo": "RECURSO PROPRIO", "desc": "VISTORIA DE SUPRESSÃO DE ARVORE", "vals": [77.64, 0, 38.82, 0, 232.92, 0, 58.23, 485.42, 310.57, 1082.86, 252.53, 149.36, 329.98, 373.4, 0, 448.08, 330.51, 186.7, 77.64, 0, 271.74, 0, 19.42, 0]}], "subtotal": [21379300.21, 24405563.980000004, 31997183.94000001, 30012906.299999997, 21579593.98999999, 25129423.150000006, 22068542.41, 20201871.519999996, 22546105.77000001, 23779294.700000007, 18590390.720000003, 22479280.909999993, 23593768.36, 23596112.43, 23162372.3, 23334100.07, 25066135.950000003, 17250886.830000006, 21273066.66999999, 0, 20584647.97999999, 0, 27671252.380000006, 0]}, {"name": "CIP", "items": [{"fonte": "CIP", "grupo": "CIP", "desc": "021 - CIP", "vals": [442543.5, 480848.57, 504743.4, 845385.69, 738977.4, 542880.31, 520008.3, 386443.16, 519485.4, 1053458.84, 516952.8, 635334.09, 478970.1, 582213.66, 532494.9, 576830.64, 533754.9, 494090.91, 485736.3, 0, 528028.2, 0, 498304.8, 0]}, {"fonte": "CIP", "grupo": "CIP", "desc": "CIP - DÍVIDA ATIVA", "vals": [19879.2, 28799.17, 29829.14, 22370.19, 16890.06, 22035.53, 13922.26, 13545.44, 17121.5, 13883.6, 13722.94, 16733.14, 15788.74, 33834.48, 15850.56, 47682.87, 19784.38, 6464.42, 18653.36, 0, 19274.86, 0, 19283, 0]}, {"fonte": "CIP", "grupo": "CIP", "desc": "CIP - JUROS E MULTAS", "vals": [96.43, 80.36, 0, 0, 161.45, 197.23, 186.58, 318.5, 389.8, 4104.53, 302.11, 491.35, 392.56, 923.58, 413.47, 1014.42, 628.32, 403.44, 565.52, 0, 647.26, 0, 1016.5, 0]}, {"fonte": "CIP", "grupo": "CIP", "desc": "CIP - MULTAS JUROS DÍVIDA ATIVA", "vals": [6524.4, 4221.92, 9393.6, 3961.28, 5057.5, 3505.44, 3058.2, 2742.5, 3829.65, 2864.57, 3030.35, 4247.22, 2856.75, 6192.86, 2925.55, 9591.19, 3509.2, 1598.77, 2723.2, 0, 3974.5, 0, 3117.1, 0]}, {"fonte": "CIP", "grupo": "CIP", "desc": "RENDIMENTOS CIP", "vals": [65000, 54879.73, 65000, 49615.56, 65000, 63913.41, 65000, 62130.3, 65000, 63359.23, 65000, 67702.24, 65000, 70873.09, 65000, 0, 65000, 0, 65000, 0, 65000, 0, 65000, 0]}, {"fonte": "CIP", "grupo": "ENERGIA ELÉTRICA", "desc": "CIA PAULISTA DE FORÇA E LUZ - CIP", "vals": [-255000, -250482.45, -255000, -259069.98, -255000, -233676.31, -255000, -224371.05, -255000, -247685.38, -255000, -262512.1, -255000, -279740.42, -255000, -278414.16, -255000, -300302.54, -255000, 0, -255000, 0, -255000, 0]}], "subtotal": [279043.53, 318347.3, 353966.14, 662262.74, 571086.41, 398855.61000000004, 347175.33999999985, 240808.84999999998, 350826.3500000001, 889985.3900000002, 344008.19999999995, 461995.93999999994, 308008.1499999999, 414297.24999999994, 361684.4800000001, 356704.96, 367676.79999999993, 202255, 317678.38, 0, 361924.81999999995, 0, 331721.3999999999, 0]}], "totals": [{"label": "TOTAL DA CATEGORIA – RECEITAS PRÓPRIO", "values": [21379300.21, 24405563.980000004, 31997183.94000001, 30012906.299999997, 21579593.98999999, 25129423.150000006, 22068542.41, 20201871.519999996, 22546105.77000001, 23779294.700000007, 18590390.720000003, 22479280.909999993, 23593768.36, 23596112.43, 23162372.3, 23334100.07, 25066135.950000003, 17250886.830000006, 21273066.66999999, 0, 20584647.97999999, 0, 27671252.380000006, 0]}, {"label": "TOTAL DA CATEGORIA - (CIP)", "values": [6454220.12, 6489006.34, 608966.14, 921332.72, 826086.41, 632531.92, 602175.34, 465179.9, 605826.35, 1137670.77, 599008.2, 724508.04, 563008.15, 694037.67, 616684.48, 635119.12, 622676.8, 502557.54, 572678.38, 0, 616924.82, 0, 586721.4, 0]}]}, "despesaParametro": {"SETEMBRO/2026": {"FOLHA LÍQUIDA": -8799982.61, "INSTITUTO DE PREVIDÊNCIA (IPSPMO)": -1080529.9100000001, "INSS": -353031.88, "ATIVIDADE DELEGADA": -100000, "AUXÍLIO": -71300, "SUBVENÇÕES": -1937805.25, "CONTAS DE CONSUMO": -295840, "FINISA": -500000, "DESENVOLVE SP": -130000, "DUODÉCIMO": -1049616.67, "PASEP": -345000, "DÍVIDAS": -118000, "PRECATÓRIOS": -268000, "DESPESAS BANCÁRIAS": -29000, "CONVÊNIOS": -10372.26, "CIP": -255000}, "OUTUBRO/2026": {"FOLHA LÍQUIDA": -9699982.61, "INSTITUTO DE PREVIDÊNCIA (IPSPMO)": -1080529.9100000001, "INSS": -353031.88, "ATIVIDADE DELEGADA": -100000, "AUXÍLIO": -71300, "SUBVENÇÕES": -1937805.25, "CONTAS DE CONSUMO": -295840, "FINISA": -500000, "DESENVOLVE SP": -130000, "DUODÉCIMO": -1049616.67, "PASEP": -345000, "DÍVIDAS": -118000, "PRECATÓRIOS": -268000, "DESPESAS BANCÁRIAS": -29000, "CONVÊNIOS": -10372.26, "CIP": -255000}, "NOVEMBRO/2026": {"FOLHA LÍQUIDA": -8799982.61, "INSTITUTO DE PREVIDÊNCIA (IPSPMO)": -1080529.9100000001, "INSS": -353031.88, "ATIVIDADE DELEGADA": -100000, "AUXÍLIO": -71300, "SUBVENÇÕES": -1937805.25, "CONTAS DE CONSUMO": -295840, "FINISA": -500000, "DESENVOLVE SP": -130000, "DUODÉCIMO": -1049616.67, "PASEP": -345000, "DÍVIDAS": -118000, "PRECATÓRIOS": -268000, "DESPESAS BANCÁRIAS": -29000, "CONVÊNIOS": -10372.26, "CIP": -255000}, "DEZEMBRO/2026": {"FOLHA LÍQUIDA": -13606852.18, "INSTITUTO DE PREVIDÊNCIA (IPSPMO)": -1688482.47, "INSS": -480231.88, "ATIVIDADE DELEGADA": -100000, "AUXÍLIO": -71300, "SUBVENÇÕES": -1937805.25, "CONTAS DE CONSUMO": -323840, "FINISA": -1500000, "DESENVOLVE SP": -130000, "DUODÉCIMO": -1049616.67, "PASEP": -345000, "DÍVIDAS": -118000, "PRECATÓRIOS": -268000, "DESPESAS BANCÁRIAS": -29000, "CONVÊNIOS": -10372.26, "CIP": -255000}}, "receitaPrevistoMes": {"SETEMBRO/2026": 25066135.950000003, "OUTUBRO/2026": 21273066.66999999, "NOVEMBRO/2026": 20584647.97999999, "DEZEMBRO/2026": 27671252.380000006}, "idxDespesaMap": [null, null, null, "SUBVENÇÕES", "INSTITUTO DE PREVIDÊNCIA (IPSPMO)", "DESPESAS BANCÁRIAS", "CONVÊNIOS", "AUXÍLIO", "FINISA", null, "ATIVIDADE DELEGADA", null, "CONTAS DE CONSUMO", "DUODÉCIMO", "INSS", null, "CIP", "PASEP", "PRECATÓRIOS", "DÍVIDAS", null, "FOLHA LÍQUIDA", null], "pctDiaUtil": [0.0114535610601728, 0.0370675016702088, 0.00674029742373152, 0.00629589062027712, 0.0205363756437592, 0.053463195594071, 0.0541543317919052, 0.183929724893301, 0.0126052964568413, 0.110577663440554, 0.00875800841272889, 0.0279786746780573, 0.0169709094739793, 0.0232135695448847, 0.0410451843024786, 0.0184909433982265, 0.0619050518089951, 0.0106431553595442, 0.0072707354715581, 0.0610590505356474, 0.0207933709835844, 0.144384952305643, 0.0543173287465133], "parcelados": {"companies": [{"name": "Constroeste", "items": [{"fonte": "RECURSOS PRÓPRIOS", "grupo": "DEMAIS CONTRATOS", "desc": "CONSTROESTE CONSTRUTORA - REC PRÓPRIOS", "vals": [-600000.0, -25865.53, -600000.0, -746701.31, -600000.0, -471262.35, -600000.0, -548072.51, -2300000.0, -2248191.86, -2300000.0, -2865416.42, -2300000.0, -2160945.82, -2300000.0, -2393307.48, -2300000.0, -485802.34, -2300000.0, 0, -2300000.0, 0, -2300000.0, 0]}, {"fonte": "SAÚDE 15%", "grupo": "CONTRATOS DE SAÚDE", "desc": "CONSTROESTE CONSTRUTORA E PART - SAÚDE", "vals": [-40000.0, -40082.89, -40000.0, 0, -40000.0, -79713.07, -40000.0, -41946.2, -40000.0, -36006.58, -40000.0, -39552.18, -40000.0, -41520.34, -40000.0, -46236.39, -40000.0, -41651.09, -40000.0, 0, -40000.0, 0, -40000.0, 0]}]}, {"name": "Della Fattoria", "items": [{"fonte": "EDUCAÇÃO 25%", "grupo": "CONTRATOS EDUCACIONAIS", "desc": "DELLA FATTORIA ALIMENTARE - REC. EDUCAÇÃO", "vals": [0, -3710.04, -1200000.0, -527110.38, -1200000.0, -294776.58, -1200000.0, -606077.72, -1200000.0, -2081197.31, -1200000.0, -20851.0, -1200000.0, -2211168.21, -1200000.0, -12727.32, -1200000.0, -1298787.1, -1200000.0, 0, -1200000.0, 0, -1200000.0, 0]}]}]}, "parcelaPadrao": 500000}</script>
+<script>
+(function(){
+'use strict';
+
+const DATA = JSON.parse(document.getElementById('data-blob').textContent);
+const MONTHS = DATA.months;          // ["Janeiro", ... "Dezembro"]
+const MONTHS_UPPER = DATA.monthsUpper; // ["JANEIRO", ...]
+const PROJ_IDX = [8,9,10,11]; // Setembro..Dezembro (0-based)
+const DEFAULT_IDX = [9]; // Outubro (0-based) — mês padrão de exibição
+
+function fmtBRL(v, opts){
+  opts = opts || {};
+  if (v===null || v===undefined || isNaN(v)) return opts.dash===false ? '0,00' : '—';
+  const neg = v < -0.004;
+  const abs = Math.abs(v);
+  const str = abs.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return (neg ? '-' : '') + str;
+}
+function fmtPct(v){
+  if (v===null||v===undefined||isNaN(v)) return '—';
+  return (v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
+}
+function parseBRL(str){
+  if(!str) return 0;
+  const cleaned = String(str).trim().replace(/[^\d,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.');
+  const v = parseFloat(cleaned);
+  return isNaN(v) ? 0 : v;
+}
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ================= TOOLTIP (JS-positioned, escapes scroll clipping) ================= */
+const jsTooltip = document.getElementById('jsTooltip');
+function showTooltip(target){
+  const text = target.getAttribute('data-tt');
+  if(!text) return;
+  jsTooltip.textContent = text;
+  jsTooltip.classList.add('show');
+  const r = target.getBoundingClientRect();
+  const tw = jsTooltip.offsetWidth, th = jsTooltip.offsetHeight;
+  let left = r.left + r.width/2 - tw/2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+  let top = r.top - th - 8;
+  if(top < 4){ top = r.bottom + 8; }
+  jsTooltip.style.left = left+'px';
+  jsTooltip.style.top = top+'px';
+}
+function hideTooltip(){ jsTooltip.classList.remove('show'); }
+document.addEventListener('mouseover', function(e){
+  const t = e.target.closest('.tt');
+  if(t) showTooltip(t);
+});
+document.addEventListener('mouseout', function(e){
+  if(e.target.closest('.tt')) hideTooltip();
+});
+document.addEventListener('focusin', function(e){
+  const t = e.target.closest('.tt');
+  if(t) showTooltip(t);
+});
+document.addEventListener('focusout', function(e){
+  if(e.target.closest('.tt')) hideTooltip();
+});
+document.addEventListener('scroll', hideTooltip, true);
+
+/* ================= TABS ================= */
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('section.panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ================= COPY TABLE ================= */
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.btn-copy');
+  if(!btn) return;
+  const table = document.getElementById(btn.dataset.copyTarget);
+  if(!table) return;
+  const rows = Array.from(table.querySelectorAll('tr')).map(function(tr){
+    return Array.from(tr.children).map(function(td){ return td.textContent.trim().replace(/\s+/g,' '); }).join('\t');
+  });
+  const text = rows.join('\n');
+  navigator.clipboard.writeText(text).then(function(){
+    const orig = btn.textContent;
+    btn.textContent = 'Copiado!';
+    setTimeout(function(){ btn.textContent = orig; }, 1400);
+  }).catch(function(){
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(err){}
+    document.body.removeChild(ta);
+    btn.textContent = 'Copiado!';
+    setTimeout(function(){ btn.textContent='Copiar tabela'; }, 1400);
+  });
+});
+
+/* ================= MONTH CHIPS ================= */
+function buildMonthChips(containerId, defaultIdx, onChange){
+  const el = document.getElementById(containerId);
+  el.innerHTML='';
+  MONTHS_UPPER.forEach(function(m,i){
+    const chip = document.createElement('button');
+    chip.type='button';
+    chip.className = 'm-chip' + (PROJ_IDX.indexOf(i)>=0 ? ' proj' : '') + (defaultIdx.indexOf(i)>=0 ? ' active' : '');
+    chip.textContent = MONTHS[i].slice(0,3);
+    chip.title = MONTHS[i] + (PROJ_IDX.indexOf(i)>=0 ? ' (projeção)' : ' (executado)');
+    chip.dataset.idx = i;
+    chip.addEventListener('click', function(){
+      chip.classList.toggle('active');
+      onChange(getSelected());
+    });
+    el.appendChild(chip);
+  });
+  function getSelected(){
+    return Array.from(el.querySelectorAll('.m-chip.active')).map(function(c){ return +c.dataset.idx; }).sort(function(a,b){return a-b;});
+  }
+  el._getSelected = getSelected;
+  return getSelected;
+}
+
+document.querySelectorAll('.month-chip-actions button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const target = btn.dataset.target; // desp | cont | rec
+    const containerId = target+'MonthChips';
+    const el = document.getElementById(containerId);
+    const chips = Array.from(el.querySelectorAll('.m-chip'));
+    if(btn.dataset.action==='proj'){
+      chips.forEach(function(c){ c.classList.toggle('active', PROJ_IDX.indexOf(+c.dataset.idx)>=0); });
+    } else {
+      chips.forEach(function(c){ c.classList.add('active'); });
+    }
+    RENDERERS[target](el._getSelected());
+  });
+});
+
+/* ================= SECTION RENDERING (Despesas / Contratos / Receitas) ================= */
+
+function sumVals(vals, monthIdx){
+  let prev=0, real=0;
+  monthIdx.forEach(function(i){
+    prev += (vals[i*2]||0);
+    real += (vals[i*2+1]||0);
+  });
+  return {prev:prev, real:real};
+}
+
+function breadcrumbTip(item){
+  return 'Fonte: '+item.fonte+' \u203A Grupo original: '+item.grupo;
+}
+
+function buildGroupTableHTML(group, monthIdx, tableId){
+  let html = '<div class="table-scroll"><table class="grouptbl" id="'+tableId+'">';
+  html += '<thead><tr>';
+  html += '<th class="text-col">Descrição</th>';
+  monthIdx.forEach(function(i){
+    html += '<th colspan="2">'+MONTHS[i]+'</th>';
+  });
+  html += '</tr><tr class="month-row"><th class="text-col"></th>';
+  monthIdx.forEach(function(){ html += '<th>Previsto</th><th>Realizado</th>'; });
+  html += '</tr></thead><tbody>';
+
+  group.items.forEach(function(item){
+    html += '<tr><td class="text-col"><span class="tt" tabindex="0" data-tt="'+esc(breadcrumbTip(item))+'">'+esc(item.desc)+'</span></td>';
+    monthIdx.forEach(function(i){
+      const p = item.vals[i*2], r = item.vals[i*2+1];
+      html += '<td>'+fmtBRL(p)+'</td><td>'+fmtBRL(r)+'</td>';
+    });
+    html += '</tr>';
+  });
+
+  if(group.subtotal){
+    html += '<tr class="total-row"><td class="text-col">Subtotal — '+esc(group.name)+'</td>';
+    monthIdx.forEach(function(i){
+      const p = group.subtotal[i*2], r = group.subtotal[i*2+1];
+      html += '<td>'+fmtBRL(p)+'</td><td>'+fmtBRL(r)+'</td>';
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function buildMonthsSummaryHTML(vals, monthIdx){
+  return '<div class="grp-months">' + monthIdx.map(function(i){
+    const p = vals[i*2]||0, r = vals[i*2+1]||0;
+    return '<div class="gm"><span class="gm-label">'+MONTHS[i].slice(0,3).toUpperCase()+'</span>'+
+      '<span class="gm-prev">'+fmtBRL(p)+'</span>'+
+      '<span class="gm-real">'+fmtBRL(r)+'</span></div>';
+  }).join('') + '</div>';
+}
+
+function renderSection(prefix, dataset, monthIdx){
+  const accEl = document.getElementById(prefix+'Accordions');
+  const wasOpen = {};
+  Array.from(accEl.querySelectorAll('details.group-acc')).forEach(function(d,i){ wasOpen[i]=d.open; });
+  accEl.innerHTML = '';
+
+  dataset.groups.forEach(function(group, gi){
+    const details = document.createElement('details');
+    details.className='group-acc';
+    if(wasOpen[gi]) details.open = true;
+
+    const summary = document.createElement('summary');
+    summary.innerHTML =
+      '<div class="grp-left"><span class="chev"></span>'+
+      '<div><div class="grp-name">'+esc(group.name)+'</div>'+
+      '<div class="grp-count">'+group.items.length+' item(ns)</div></div></div>'+
+      (group.subtotal ? buildMonthsSummaryHTML(group.subtotal, monthIdx) : '');
+    details.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className='acc-body';
+    const tableId = prefix+'-tbl-'+gi;
+    body.innerHTML = '<div class="tbl-title-row"><span class="ttl">Detalhamento — '+esc(group.name)+'</span>'+
+      '<button class="btn btn-copy" data-copy-target="'+tableId+'">Copiar tabela</button></div>'+
+      buildGroupTableHTML(group, monthIdx, tableId);
+    details.appendChild(body);
+
+    accEl.appendChild(details);
+  });
+
+  const stripEl = document.getElementById(prefix+'TotalsStrip');
+  stripEl.innerHTML='';
+  dataset.totals.forEach(function(t){
+    const tot = sumVals(t.values, monthIdx);
+    const div = document.createElement('div');
+    div.className='grand-total-bar';
+    div.innerHTML = '<div class="gt-label">'+esc(t.label)+'</div>'+
+      '<div class="gt-values">'+
+        '<div class="gtv"><span class="gtv-label">PREVISTO (SELEÇÃO)</span><span class="gtv-value">'+fmtBRL(tot.prev)+'</span></div>'+
+        '<div class="gtv"><span class="gtv-label">REALIZADO (SELEÇÃO)</span><span class="gtv-value">'+fmtBRL(tot.real)+'</span></div>'+
+      '</div>';
+    stripEl.appendChild(div);
+  });
+}
+
+/* ================= PARCELADOS (Constroeste / Della Fattoria) ================= */
+const parcelaInput = document.getElementById('parcelaValor');
+parcelaInput.value = fmtBRL(DATA.parcelaPadrao, {dash:false});
+parcelaInput.addEventListener('focus', function(){
+  const v = parseBRL(parcelaInput.value);
+  parcelaInput.value = v ? v.toFixed(2).replace('.', ',') : '';
+  parcelaInput.select();
+});
+parcelaInput.addEventListener('blur', function(){
+  parcelaInput.value = fmtBRL(parseBRL(parcelaInput.value), {dash:false});
+});
+parcelaInput.addEventListener('input', function(){
+  renderParcelados(document.getElementById('contMonthChips')._getSelected());
+});
+
+function parcelasCell(open, parcela){
+  if(open < 0.005) return '<td class="dash"><span class="tt" tabindex="0" data-tt="Sem valor previsto no mês">—</span></td>';
+  if(parcela <= 0) return '<td class="dash">—</td>';
+  const q = open / parcela;
+  const full = Math.floor(q + 1e-9);
+  const resto = Math.round((open - full*parcela)*100)/100;
+  const n = resto >= 0.005 ? full + 1 : full;
+  let tip;
+  if(resto < 0.005) tip = full+' parcela(s) de R$ '+fmtBRL(parcela,{dash:false});
+  else if(full === 0) tip = '1 parcela de R$ '+fmtBRL(resto,{dash:false});
+  else tip = full+' parcela(s) de R$ '+fmtBRL(parcela,{dash:false})+' + 1 parcela de R$ '+fmtBRL(resto,{dash:false});
+  const qs = q.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '<td><span class="tt" tabindex="0" data-tt="'+esc(tip)+'"><b>'+qs+'</b> ('+n+'x)</span></td>';
+}
+
+function renderParcelados(monthIdx){
+  const body = document.getElementById('parceladosBody');
+  const prevDet = body.querySelector('details');
+  const wasOpen = prevDet ? prevDet.open : false;
+  const parcela = parseBRL(parcelaInput.value);
+  const comps = DATA.parcelados.companies;
+
+  function monthSums(c, i){
+    let p=0, r=0;
+    c.items.forEach(function(it){ p += -(it.vals[i*2]||0); r += -(it.vals[i*2+1]||0); });
+    return {p:p, r:r};
+  }
+  let html = '<div class="table-scroll"><table class="grouptbl" id="tblParcelados"><thead><tr><th class="text-col">Mês</th>';
+  comps.forEach(function(c){ html += '<th colspan="2">'+esc(c.name)+'</th>'; });
+  html += '<th colspan="2">Constroeste + Della Fattoria</th></tr><tr class="month-row"><th class="text-col"></th>';
+  comps.forEach(function(){ html += '<th>Previsto</th><th>Realizado</th>'; });
+  html += '<th>Previsto (soma)</th><th>Parcelas</th></tr></thead><tbody>';
+
+  const tot = comps.map(function(){ return {p:0,r:0}; });
+  let totPrev = 0;
+  monthIdx.forEach(function(i){
+    html += '<tr><td class="text-col">'+MONTHS[i]+'</td>';
+    let rowPrev = 0;
+    comps.forEach(function(c, ci){
+      const s = monthSums(c, i);
+      tot[ci].p += s.p; tot[ci].r += s.r;
+      rowPrev += s.p;
+      html += '<td>'+fmtBRL(s.p)+'</td><td>'+fmtBRL(s.r)+'</td>';
+    });
+    totPrev += rowPrev;
+    html += '<td><b>'+fmtBRL(rowPrev)+'</b></td>'+parcelasCell(rowPrev, parcela)+'</tr>';
+  });
+  html += '<tr class="total-row"><td class="text-col">Total do período</td>';
+  comps.forEach(function(c, ci){
+    html += '<td>'+fmtBRL(tot[ci].p)+'</td><td>'+fmtBRL(tot[ci].r)+'</td>';
+  });
+  html += '<td>'+fmtBRL(totPrev)+'</td>'+parcelasCell(totPrev, parcela)+'</tr></tbody></table></div>';
+
+  // composição por fonte de recurso
+  const items = [];
+  comps.forEach(function(c){ c.items.forEach(function(it){ items.push(it); }); });
+  const sub = new Array(24).fill(0);
+  items.forEach(function(it){ it.vals.forEach(function(v,k){ sub[k] += (v||0); }); });
+  const grp = {name:'Constroeste e Della Fattoria', items:items, subtotal:sub};
+  html += '<details class="group-acc" style="margin-top:14px"'+(wasOpen?' open':'')+'><summary>'+
+    '<div class="grp-left"><span class="chev"></span><div><div class="grp-name">Composição por fonte de recurso</div>'+
+    '<div class="grp-count">'+items.length+' item(ns)</div></div></div>'+buildMonthsSummaryHTML(sub, monthIdx)+'</summary>'+
+    '<div class="acc-body"><div class="tbl-title-row"><span class="ttl">Detalhamento — previsto e realizado</span>'+
+    '<button class="btn btn-copy" data-copy-target="tblParceladosComp">Copiar tabela</button></div>'+
+    buildGroupTableHTML(grp, monthIdx, 'tblParceladosComp')+'</div></details>';
+  body.innerHTML = html;
+}
+
+const RENDERERS = {
+  desp: function(idx){ renderSection('desp', DATA.despesas, idx); },
+  cont: function(idx){ renderSection('cont', DATA.contratos, idx); renderParcelados(idx); },
+  rec:  function(idx){ renderSection('rec', DATA.receitas, idx); }
+};
+
+buildMonthChips('despMonthChips', DEFAULT_IDX, RENDERERS.desp);
+buildMonthChips('contMonthChips', DEFAULT_IDX, RENDERERS.cont);
+buildMonthChips('recMonthChips', DEFAULT_IDX, RENDERERS.rec);
+RENDERERS.desp(DEFAULT_IDX);
+RENDERERS.cont(DEFAULT_IDX);
+RENDERERS.rec(DEFAULT_IDX);
+
+/* ================= CRONOLOGIA ================= */
+
+const DOW_PT = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const cronoMonths = Object.keys(DATA.receitaPrevistoMes); // e.g. ["SETEMBRO/2026","OUTUBRO/2026",...]
+
+const cronoSelect = document.getElementById('cronoMonthSelect');
+cronoMonths.forEach(function(m){
+  const label = m.split('/')[0];
+  const labelCap = label.charAt(0)+label.slice(1).toLowerCase();
+  const opt = document.createElement('option');
+  opt.value = m;
+  opt.textContent = labelCap + '/' + m.split('/')[1];
+  cronoSelect.appendChild(opt);
+});
+// Mês padrão de exibição: Outubro, se existir entre os meses disponíveis
+if (cronoMonths.indexOf('OUTUBRO/2026') >= 0) { cronoSelect.value = 'OUTUBRO/2026'; }
+
+function businessDaysOfMonth(year, monthIdx0){
+  const days=[];
+  const d = new Date(year, monthIdx0, 1);
+  while(d.getMonth()===monthIdx0){
+    const dow = d.getDay();
+    if(dow>=1 && dow<=5){ days.push(new Date(d)); }
+    d.setDate(d.getDate()+1);
+  }
+  return days;
+}
+
+const cronoPrevistoInput = document.getElementById('cronoPrevisto');
+let cronoUserEdited = false;
+
+cronoPrevistoInput.addEventListener('focus', function(){
+  const v = parseBRL(cronoPrevistoInput.value);
+  cronoPrevistoInput.value = v ? v.toFixed(2).replace('.', ',') : '';
+  cronoPrevistoInput.select();
+});
+cronoPrevistoInput.addEventListener('blur', function(){
+  const v = parseBRL(cronoPrevistoInput.value);
+  cronoPrevistoInput.value = fmtBRL(v, {dash:false});
+});
+cronoPrevistoInput.addEventListener('input', function(){ cronoUserEdited = true; renderCrono(); });
+document.getElementById('cronoResetBtn').addEventListener('click', function(){
+  cronoUserEdited = false;
+  renderCrono();
+});
+cronoSelect.addEventListener('change', function(){ cronoUserEdited = false; renderCrono(); });
+
+function renderCrono(){
+  const monthKey = cronoSelect.value;
+  const parts = monthKey.split('/');
+  const mesUpper = parts[0];
+  const year = +parts[1];
+  const monthIdx0 = MONTHS_UPPER.indexOf(mesUpper);
+  const days = businessDaysOfMonth(year, monthIdx0);
+
+  if(!cronoUserEdited){
+    cronoPrevistoInput.value = fmtBRL(DATA.receitaPrevistoMes[monthKey]||0, {dash:false});
+  }
+  const previstoMes = parseBRL(cronoPrevistoInput.value);
+  const despMap = DATA.despesaParametro[monthKey] || {};
+
+  // Despesas cuja posição normal (índice fixo do dia útil) cai além do último dia útil
+  // deste mês (ex.: Folha no 22º dia útil, mas novembro só tem 21) são reatribuídas
+  // ao último dia útil do mês, em vez de desaparecerem da agenda.
+  const overflow = {}; // nome -> true
+  for (let i = days.length; i < DATA.idxDespesaMap.length; i++){
+    const nome = DATA.idxDespesaMap[i];
+    if (nome) overflow[nome] = true;
+  }
+  const overflowNames = Object.keys(overflow);
+
+  // Percentuais de arrecadação por dia útil: a soma bruta dos percentuais históricos
+  // nem sempre fecha perto de 100% do previsto do mês (varia conforme o número de dias
+  // úteis do mês). Quando a soma bruta fica muito longe de 100%, redistribuímos a
+  // diferença proporcionalmente ao peso de cada dia, para que o total do mês feche
+  // perto de 100% do previsto — mantendo o formato relativo entre os dias.
+  const rawPct = days.map(function(d, i){ return DATA.pctDiaUtil[i] || 0; });
+  const rawSum = rawPct.reduce(function(a,b){ return a+b; }, 0);
+  const pctDiff = 1 - rawSum; // fração que falta (ou sobra, se negativa) para fechar 100%
+  const pctNormalized = Math.abs(pctDiff) > 0.01; // "muito fora" de 99–101%
+  const scale = (pctNormalized && rawSum > 0) ? (1 / rawSum) : 1;
+  const adjPct = rawPct.map(function(p){ return p * scale; });
+
+  let saldoAcum = 0;
+  let totalDesp = 0, totalRec = 0;
+  const rows = [];
+  days.forEach(function(d, i){
+    const idx = i+1;
+    const isLastDay = (i === days.length - 1);
+    let despNomes = [];
+    const normalNome = DATA.idxDespesaMap[i] || null;
+    if (normalNome) despNomes.push(normalNome);
+    if (isLastDay) despNomes = despNomes.concat(overflowNames);
+    const despNome = despNomes.length ? despNomes.join(' + ') : null;
+    const despValor = despNomes.reduce(function(sum,n){ return sum + (despMap[n]||0); }, 0);
+    const pctBruto = rawPct[i];
+    const pct = adjPct[i];
+    const receitaValor = previstoMes*pct;
+    const saldoDia = despValor + receitaValor;
+    saldoAcum += saldoDia;
+    totalDesp += despValor;
+    totalRec += receitaValor;
+    const dow = d.getDay();
+    const dom = d.getDate();
+    let tags=[];
+    if(dow===2) tags.push('ICMS');
+    if([10,20,30].indexOf(dom)>=0) tags.push('FPM');
+    rows.push({idx:idx, date:d, dow:DOW_PT[dow], despNome:despNome, despValor:despValor, pct:pct, pctBruto:pctBruto, receitaValor:receitaValor, saldoDia:saldoDia, saldoAcum:saldoAcum, tags:tags});
+  });
+
+  document.getElementById('kpiDespMes').textContent = fmtBRL(totalDesp);
+  document.getElementById('kpiRecMes').textContent = fmtBRL(totalRec);
+  document.getElementById('kpiDiasMes').textContent = days.length;
+
+  // Contratos previstos do mês × saldo após despesas obrigatórias
+  const contTot = DATA.contratos.totals.filter(function(t){ return /CONTRATOS/i.test(t.label); })[0];
+  const contratosPrev = contTot ? Math.abs(contTot.values[monthIdx0*2] || 0) : 0;
+  const resultado = saldoAcum - contratosPrev;
+  const mesNome = MONTHS[monthIdx0];
+  document.getElementById('cmpContratosLabel').textContent = 'CONTRATOS PREVISTOS EM '+mesNome.toUpperCase();
+  document.getElementById('cmpSaldo').textContent = fmtBRL(saldoAcum);
+  document.getElementById('cmpContratos').textContent = fmtBRL(contratosPrev);
+  const resEl = document.getElementById('cmpResultado');
+  resEl.textContent = fmtBRL(resultado);
+  resEl.className = 'k-value ' + (resultado < 0 ? 'neg' : 'pos');
+  document.getElementById('cmpNotice').innerHTML = resultado < 0
+    ? '<div class="notice notice-warn"><span class="n-icon">!</span><span>Com essa previsão não conseguimos pagar os contratos previstos de '+mesNome+': o saldo após as despesas obrigatórias (R$ '+fmtBRL(saldoAcum)+') é menor que os contratos previstos (R$ '+fmtBRL(contratosPrev)+'). Faltam R$ '+fmtBRL(Math.abs(resultado))+'.</span></div>'
+    : '<div class="notice notice-ok"><span class="n-icon">✓</span><span>Com essa previsão, o saldo estimado após as despesas obrigatórias cobre os contratos previstos de '+mesNome+'.</span></div>';
+
+  const normNote = document.getElementById('cronoNormNote');
+  if (normNote) {
+    if (pctNormalized) {
+      const sinal = pctDiff >= 0 ? 'faltava' : 'sobrava';
+      normNote.innerHTML = '<div class="notice notice-info"><span class="n-icon">i</span><span>A soma bruta dos percentuais históricos de '+mesNome+' fechava em '+fmtPct(rawSum)+' do previsto (ou seja, '+sinal+' '+fmtPct(Math.abs(pctDiff))+'). Redistribuímos essa diferença proporcionalmente ao peso de cada dia útil, para que a receita do mês feche perto de 100% do previsto — por isso o percentual de cada dia abaixo já vem ajustado (passe o mouse sobre o valor para ver o percentual bruto e o ajustado).</span></div>';
+    } else {
+      normNote.innerHTML = '<div class="notice notice-ok"><span class="n-icon">✓</span><span>A soma bruta dos percentuais históricos de '+mesNome+' já fecha perto de 100% do previsto ('+fmtPct(rawSum)+'), então os percentuais abaixo foram mantidos como estão, sem ajuste.</span></div>';
+    }
+  }
+
+  const tbody = document.getElementById('cronoBody');
+  tbody.innerHTML = rows.map(function(r){
+    const dateStr = r.date.toLocaleDateString('pt-BR');
+    const calcTip = pctNormalized
+      ? (fmtPct(r.pctBruto)+' bruto \u2192 '+fmtPct(r.pct)+' ajustado \u00D7 R$ '+fmtBRL(previstoMes, {dash:false})+' = R$ '+fmtBRL(r.receitaValor, {dash:false}))
+      : (fmtPct(r.pct)+' \u00D7 R$ '+fmtBRL(previstoMes, {dash:false})+' = R$ '+fmtBRL(r.receitaValor, {dash:false}));
+    const tagsHtml = r.tags.map(function(t){ return '<span class="pill-tag">'+t+'</span>'; }).join('');
+    return '<tr class="'+(r.despNome?'has-desp':'')+'">'+
+      '<td class="text-col">'+r.idx+'º</td>'+
+      '<td class="text-col">'+dateStr+'</td>'+
+      '<td class="text-col">'+r.dow+'</td>'+
+      '<td class="desp-name">'+(r.despNome||'—')+'</td>'+
+      '<td class="despesa-val">'+(r.despValor? fmtBRL(r.despValor):'—')+'</td>'+
+      '<td class="receita-val"><span class="tt" tabindex="0" data-tt="'+esc(calcTip)+'">'+fmtBRL(r.receitaValor)+'</span>'+tagsHtml+'</td>'+
+      '<td class="'+(r.saldoDia<0?'saldo-neg':'saldo-pos')+'">'+fmtBRL(r.saldoDia)+'</td>'+
+      '<td class="'+(r.saldoAcum<0?'saldo-neg':'saldo-pos')+'">'+fmtBRL(r.saldoAcum)+'</td>'+
+      '</tr>';
+  }).join('') +
+  '<tr class="total-row"><td class="text-col" colspan="4">Totais do mês</td>'+
+  '<td class="despesa-val">'+fmtBRL(totalDesp)+'</td><td class="receita-val">'+fmtBRL(totalRec)+'</td>'+
+  '<td colspan="2">Saldo final: <span class="num">'+fmtBRL(saldoAcum)+'</span></td></tr>';
+}
+
+renderCrono();
+
+})();
+
+</script>
+</body>
+</html>
