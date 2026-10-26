@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pagamentos a Fornecedores — Comparativo por Quinzena</title>
+<style>
+
+:root{
+  --paper:#F3F1EA;
+  --paper-deep:#EAE7DD;
+  --ink:#1F2A3C;
+  --ink-soft:#54627A;
+  --ink-faint:#8B96A8;
+  --line:#DAD5C7;
+  --line-strong:#C3BCA8;
+  --card:#FFFFFF;
+  --receita:#2E6B4F;
+  --receita-soft:#DEEBE3;
+  --despesa:#9A4B2E;
+  --despesa-soft:#F2E1D6;
+  --contrato:#3C5A80;
+  --contrato-soft:#E1E7EF;
+  --alert:#A63D2E;
+  --alert-soft:#F5E1DD;
+  --gold:#B08A3E;
+  --gold-soft:#F1E7CE;
+  --radius:9px;
+  --shadow: 0 1px 2px rgba(31,42,60,0.06), 0 6px 18px rgba(31,42,60,0.06);
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A22;
+    --paper-deep:#1B2128;
+    --ink:#E7E4D9;
+    --ink-soft:#AEB6C4;
+    --ink-faint:#727C8D;
+    --line:#2C333D;
+    --line-strong:#3A4250;
+    --card:#1C222B;
+    --receita:#5FA98A;
+    --receita-soft:#20332B;
+    --despesa:#D08A65;
+    --despesa-soft:#33261E;
+    --contrato:#8FA8CC;
+    --contrato-soft:#212B3B;
+    --alert:#D98A7A;
+    --alert-soft:#392420;
+    --gold:#D6B87A;
+    --gold-soft:#332B18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A22;
+  --paper-deep:#1B2128;
+  --ink:#E7E4D9;
+  --ink-soft:#AEB6C4;
+  --ink-faint:#727C8D;
+  --line:#2C333D;
+  --line-strong:#3A4250;
+  --card:#1C222B;
+  --receita:#5FA98A;
+  --receita-soft:#20332B;
+  --despesa:#D08A65;
+  --despesa-soft:#33261E;
+  --contrato:#8FA8CC;
+  --contrato-soft:#212B3B;
+  --alert:#D98A7A;
+  --alert-soft:#392420;
+  --gold:#D6B87A;
+  --gold-soft:#332B18;
+  --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.35);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-font-smoothing:antialiased; scroll-padding-top: env(safe-area-inset-top,0px);}
+:root{ padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px); }
+body{
+  margin:0;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--paper) 0%, var(--paper) 100%),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 26px, rgba(90,80,50,0.035) 26px, rgba(90,80,50,0.035) 27px);
+  color:var(--ink);
+  font-family: 'Iowan Old Style','Palatino Linotype',Georgia, serif;
+  font-size:14.5px;
+  line-height:1.5;
+}
+h1,h2,h3{ font-family:Georgia,'Iowan Old Style','Palatino Linotype',Palatino,serif; font-weight:600; margin:0; color:var(--ink); }
+.sans{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.num{ font-family:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace; font-variant-numeric: tabular-nums; }
+a{color:inherit;}
+button{font-family:inherit;}
+
+header.top{
+  background:var(--ink);
+  color:var(--paper);
+  padding: calc(16px + env(safe-area-inset-top,0px)) clamp(16px,4vw,44px) 16px;
+  position:relative; overflow:hidden;
+}
+header.top::after{
+  content:""; position:absolute; inset:0;
+  background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 32px, rgba(255,255,255,0.03) 32px, rgba(255,255,255,0.03) 33px);
+  pointer-events:none;
+}
+.top-inner{ position:relative; display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; }
+.top-left h1{ color:#F6F4EC; font-size:clamp(18px,2.2vw,23px); letter-spacing:.2px; }
+.top-left .subtitle{ color:#BFC7D6; font-size:12.5px; margin-top:5px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.top-right{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:#9DA8BC; text-align:right; }
+
+nav.tabs{
+  background:var(--paper-deep);
+  border-bottom:1px solid var(--line-strong);
+  padding:0 clamp(16px,4vw,44px);
+  display:flex; gap:2px; overflow-x:auto;
+  position:sticky; top: env(safe-area-inset-top,0px); z-index:30;
+}
+nav.tabs button{
+  appearance:none; border:none; background:transparent; cursor:pointer;
+  padding:13px 16px 11px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:13.5px; font-weight:600; color:var(--ink-soft); border-bottom:3px solid transparent;
+  white-space:nowrap; transition:color .15s ease, border-color .15s ease;
+}
+nav.tabs button:hover{ color:var(--ink); }
+nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--gold); }
+nav.tabs button:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+
+main{ padding:22px clamp(16px,4vw,44px) 60px; max-width:1400px; margin:0 auto; }
+section.panel{ display:none; }
+section.panel.active{ display:block; animation:fadein .2s ease; }
+@keyframes fadein{ from{opacity:0;} to{opacity:1;} }
+
+.panel-head{ margin-bottom:18px; }
+.panel-head h2{ font-size:21px; }
+.panel-head p{ color:var(--ink-soft); font-size:13px; margin-top:5px; max-width:820px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:12px; margin-bottom:20px; }
+.kpi{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:13px 15px; box-shadow:var(--shadow); border-top:3px solid var(--ink-faint);
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+.kpi.k-receita{ border-top-color:var(--receita); }
+.kpi.k-despesa{ border-top-color:var(--despesa); }
+.kpi.k-saldo{ border-top-color:var(--gold); }
+.kpi.k-contrato{ border-top-color:var(--contrato); }
+.kpi .k-label{ font-size:10.5px; letter-spacing:.03em; color:var(--ink-soft); font-weight:600;}
+.kpi .k-value{ font-family:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace; font-size:20px; font-weight:600; margin-top:5px; color:var(--ink); }
+.kpi .k-value.neg{ color:var(--alert); }
+.kpi .k-value.pos{ color:var(--receita); }
+.kpi .k-sub{ font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+
+.card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px; margin-bottom:20px; }
+.card h3{ font-size:14.5px; margin-bottom:10px; }
+.card .card-desc{ font-size:12px; color:var(--ink-soft); margin:-4px 0 12px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.chart-wrap{ position:relative; height:300px; }
+
+/* ---------- controls ---------- */
+.controls-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.field{ display:flex; flex-direction:column; gap:4px; }
+.field label{ font-size:11px; font-weight:600; color:var(--ink-soft); }
+select, input[type=number]{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13.5px; font-weight:600; color:var(--ink);
+  padding:8px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); cursor:pointer;
+}
+input[type=number]{ cursor:text; width:180px; font-family:ui-monospace,monospace; }
+.btn{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; font-weight:600;
+  padding:8px 13px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
+  cursor:pointer; transition:all .12s ease;
+}
+.btn:hover{ background:var(--paper-deep); }
+.btn.primary{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.btn.primary:hover{ opacity:.88; }
+.btn-copy{ font-size:11px; padding:5px 10px; }
+
+.month-chips{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+.m-chip{
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; font-weight:700;
+  padding:5px 10px; border-radius:14px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink-faint);
+  cursor:pointer; transition:all .12s ease; letter-spacing:.02em;
+}
+.m-chip.proj{ border-style:dashed; }
+.m-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.month-chip-actions{ display:flex; gap:8px; margin-left:4px; }
+.month-chip-actions button{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-size:11.5px; padding:2px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+.month-chip-actions button:hover{ color:var(--ink); }
+
+/* ---------- accordion groups ---------- */
+details.group-acc{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden; }
+details.group-acc summary{
+  list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center; justify-content:space-between;
+  gap:14px; flex-wrap:wrap; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+details.group-acc summary::-webkit-details-marker{ display:none; }
+details.group-acc summary .grp-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+details.group-acc summary .chev{ width:9px; height:9px; border-right:2px solid var(--ink-soft); border-bottom:2px solid var(--ink-soft); transform:rotate(-45deg); transition:transform .15s ease; flex-shrink:0; }
+details.group-acc[open] summary .chev{ transform:rotate(45deg); }
+details.group-acc summary .grp-name{ font-weight:700; font-size:14px; color:var(--ink); }
+details.group-acc summary .grp-count{ font-size:11px; color:var(--ink-faint); font-weight:600; }
+details.group-acc summary .grp-values{ display:flex; gap:18px; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-size:13px; }
+details.group-acc summary .grp-values .gv{ text-align:right; }
+details.group-acc summary .grp-values .gv .gv-label{ display:block; font-size:9.5px; color:var(--ink-faint); font-family:system-ui,sans-serif; font-weight:600; }
+details.group-acc .acc-body{ border-top:1px solid var(--line); padding:12px 16px 16px; }
+
+/* ---------- tables ---------- */
+.table-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); }
+table{ border-collapse:collapse; width:100%; font-size:12.6px; min-width:560px; }
+thead th{ background:var(--ink); color:var(--paper); font-weight:600; text-align:right; padding:8px 11px; white-space:nowrap; }
+thead th:first-child, thead th.text-col{ text-align:left; }
+thead tr.month-row th{ font-size:11px; letter-spacing:.03em; }
+tbody td{ padding:7px 11px; text-align:right; border-top:1px solid var(--line); white-space:nowrap; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-variant-numeric:tabular-nums; }
+tbody td:first-child, tbody td.text-col{ text-align:left; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+tbody tr:nth-child(even){ background:rgba(90,80,50,0.028); }
+tbody tr.total-row td{ font-weight:700; background:var(--paper-deep) !important; border-top:2px solid var(--line-strong); }
+td.despesa-val{ color:var(--despesa); }
+td.receita-val{ color:var(--receita); }
+td.saldo-pos{ color:var(--receita); font-weight:700; }
+td.saldo-neg{ color:var(--alert); font-weight:700; }
+td.dash{ color:var(--ink-faint); font-family: system-ui,sans-serif; }
+.tbl-title-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:10px; flex-wrap:wrap; }
+.tbl-title-row .ttl{ font-size:12.5px; font-weight:700; color:var(--ink-soft); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+/* Cronologia agenda table */
+table.agenda td.tag{ font-family: system-ui,sans-serif; font-size:10px; font-weight:700; color:var(--ink-faint); text-align:left; }
+table.agenda td.desp-name{ font-family: system-ui,sans-serif; font-size:11.5px; color:var(--despesa); text-align:left; font-weight:600; }
+table.agenda tr.has-desp{ background: var(--despesa-soft); }
+table.agenda tr.weekend{ display:none; }
+
+.legend-row{ display:flex; gap:16px; flex-wrap:wrap; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:var(--ink-soft); margin-bottom:14px; }
+.legend-row .dot{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:1px; }
+
+.totals-strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:18px 0 8px; }
+
+footer.site{ text-align:center; padding:24px; font-size:11.5px; color:var(--ink-faint); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+.note-box{ background:var(--gold-soft); border:1px solid var(--line-strong); border-radius:var(--radius); padding:12px 15px; font-size:12px; color:var(--ink-soft); margin-bottom:18px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+
+/* ---------- breadcrumb notices ---------- */
+.notice{
+  display:flex; align-items:flex-start; gap:10px; padding:10px 14px; border-radius:var(--radius);
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; line-height:1.45;
+  border:1px solid var(--line-strong); margin-bottom:10px;
+}
+.notice .n-icon{ flex-shrink:0; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; margin-top:1px; }
+.notice.notice-warn{ background:var(--despesa-soft); color:var(--ink); border-color:var(--despesa); }
+.notice.notice-warn .n-icon{ background:var(--despesa); color:#fff; }
+.notice.notice-info{ background:var(--contrato-soft); color:var(--ink); border-color:var(--contrato); }
+.notice.notice-info .n-icon{ background:var(--contrato); color:#fff; }
+
+/* ---------- custom tooltip (breadcrumb style), JS-positioned & body-appended to escape scroll clipping ---------- */
+.tt{ cursor:help; border-bottom:1px dotted var(--ink-faint); }
+#jsTooltip{
+  position:fixed; background:var(--ink); color:var(--paper); padding:7px 10px; border-radius:7px;
+  font-size:11px; line-height:1.4; font-weight:500; white-space:normal; width:max-content; max-width:300px;
+  opacity:0; pointer-events:none; transition:opacity .1s ease; box-shadow:var(--shadow);
+  z-index:999; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+#jsTooltip.show{ opacity:1; }
+
+/* ---------- pill tag (ICMS/FPM indicator) ---------- */
+.pill-tag{
+  display:inline-block; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:9px; font-weight:800;
+  letter-spacing:.03em; padding:2px 6px; border-radius:9px; background:var(--gold-soft); color:var(--gold);
+  margin-left:6px; vertical-align:1px;
+}
+
+/* ---------- currency input ---------- */
+.currency-field{ display:flex; align-items:center; border:1px solid var(--line-strong); border-radius:8px; background:var(--card); overflow:hidden; }
+.currency-field .prefix{ padding:8px 0 8px 12px; font-size:13.5px; font-weight:700; color:var(--ink-soft); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.currency-field input{ border:none; padding:8px 12px 8px 6px; width:190px; font-family:ui-monospace,monospace; font-size:13.5px; font-weight:600; color:var(--ink); background:transparent; }
+.currency-field input:focus{ outline:none; }
+
+/* ---------- versus split in agenda table ---------- */
+table.agenda thead th.hdr-desp{ background:var(--despesa); }
+table.agenda thead th.hdr-rec{ background:var(--receita); border-left:3px solid var(--ink); }
+table.agenda td.desp-name, table.agenda td.despesa-val{ background:rgba(154,75,46,0.055); }
+table.agenda td.receita-val{ background:rgba(46,107,79,0.06); border-left:3px solid var(--line-strong); }
+
+/* ---------- accordion monthly summary strip ---------- */
+.grp-months{ display:flex; gap:10px; overflow-x:auto; max-width:56vw; padding-bottom:2px; }
+.grp-months .gm{ flex-shrink:0; text-align:right; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; padding:2px 10px; border-left:1px solid var(--line); }
+.grp-months .gm:first-child{ border-left:none; }
+.grp-months .gm .gm-label{ display:block; font-size:9px; font-weight:700; color:var(--ink-faint); font-family:system-ui,sans-serif; letter-spacing:.03em; margin-bottom:2px; }
+.grp-months .gm .gm-prev{ display:block; font-size:11.5px; color:var(--ink-soft); }
+.grp-months .gm .gm-real{ display:block; font-size:11.5px; color:var(--ink); font-weight:700; }
+
+/* ---------- bottom grand-total bar (replaces top KPI strip) ---------- */
+.grand-total-bar{
+  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+  background:var(--ink); color:var(--paper); border-radius:var(--radius); padding:14px 20px; margin-top:6px; margin-bottom:10px;
+  font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+.grand-total-bar .gt-label{ font-size:13px; font-weight:700; letter-spacing:.01em; }
+.grand-total-bar .gt-values{ display:flex; gap:26px; }
+.grand-total-bar .gt-values .gtv{ text-align:right; }
+.grand-total-bar .gt-values .gtv .gtv-label{ display:block; font-size:9.5px; color:#B9C2D4; font-weight:600; letter-spacing:.03em; }
+.grand-total-bar .gt-values .gtv .gtv-value{ display:block; font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-size:15px; font-weight:700; margin-top:2px; }
+
+/* ---------- group item tables: refined headers + sticky description ---------- */
+table.grouptbl thead th{ text-align:center; border-left:1px solid rgba(255,255,255,0.14); }
+table.grouptbl thead th.text-col{ text-align:left; border-left:none; }
+table.grouptbl thead tr.month-row th{ border-top:1px solid rgba(255,255,255,0.14); }
+table.grouptbl td:first-child, table.grouptbl th:first-child{
+  position:sticky; left:0; z-index:2; background:var(--card); box-shadow: 2px 0 4px rgba(31,42,60,0.06);
+}
+table.grouptbl thead th:first-child{ z-index:6; background:var(--ink); box-shadow:none; }
+table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#F8F7F2; }
+:root[data-theme="dark"] table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#1F262F; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) table.grouptbl tbody tr:nth-child(even) td:first-child{ background:#1F262F; } }
+table.grouptbl tbody tr.total-row td:first-child{ background:var(--paper-deep); }
+
+@media print{
+  nav.tabs{ display:none; }
+  section.panel{ display:block !important; }
+  body{ background:#fff; }
+  details.group-acc{ break-inside:avoid; }
+}
+@media (max-width:640px){
+  .top-inner{ flex-direction:column; align-items:flex-start; }
+  details.group-acc summary .grp-values{ gap:10px; font-size:12px; }
+}
+
+.notice.notice-ok{ background:var(--receita-soft); color:var(--ink); border-color:var(--receita); }
+.notice.notice-ok .n-icon{ background:var(--receita); color:#fff; }
+.cmp-note{ font-size:11.5px; color:var(--ink-faint); margin:8px 0 0; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.card-parcelado{ border-left:4px solid var(--gold); margin-top:22px; }
+table.grouptbl td.dash{ text-align:right; }
+
+/* ---------- previsto × realizado: alertas ---------- */
+:root{ --over-bg:#F8DAD5; --over-ink:#8E2A1E; --under-bg:#DCEFE2; --under-ink:#1F6A3C; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --over-bg:#4A2520; --over-ink:#F2B3A8; --under-bg:#1F3A2A; --under-ink:#9FD8B2; } }
+:root[data-theme="dark"]{ --over-bg:#4A2520; --over-ink:#F2B3A8; --under-bg:#1F3A2A; --under-ink:#9FD8B2; }
+table.grouptbl td.cmp-over{ background:var(--over-bg) !important; color:var(--over-ink); }
+table.grouptbl td.cmp-under{ background:var(--under-bg) !important; color:var(--under-ink); }
+.cmp-ic{ display:inline-block; font-size:9px; margin-right:5px; vertical-align:1px; font-family:system-ui,sans-serif; }
+.grp-months .gm .gm-real.cmp-over{ background:var(--over-bg); color:var(--over-ink); border-radius:4px; padding:0 4px; }
+.grp-months .gm .gm-real.cmp-under{ background:var(--under-bg); color:var(--under-ink); border-radius:4px; padding:0 4px; }
+.cmp-legend{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:var(--ink-soft); margin:0 0 12px; }
+.cmp-legend .sw{ display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-weight:600; }
+.cmp-legend .sw.over{ background:var(--over-bg); color:var(--over-ink); }
+.cmp-legend .sw.under{ background:var(--under-bg); color:var(--under-ink); }
+
+
+
+/* ---------- complementos deste relatório ---------- */
+.seg{ display:inline-flex; border:1px solid var(--line-strong); border-radius:8px; overflow:hidden; background:var(--card); }
+.seg button{ appearance:none; border:none; background:transparent; padding:8px 13px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+.seg button + button{ border-left:1px solid var(--line-strong); }
+.seg button.active{ background:var(--ink); color:var(--paper); }
+.seg button:focus-visible, .m-chip:focus-visible, .btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+input[type=search]{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13px; color:var(--ink); padding:8px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); width:220px; }
+.check{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-soft); font-weight:600; cursor:pointer; padding-top:18px; }
+.check input{ width:15px; height:15px; accent-color:var(--ink); }
+.period-bar{ display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.period-bar .pb-label{ font-size:11px; font-weight:600; color:var(--ink-soft); padding-top:7px; min-width:150px; }
+.m-chip.ref{ background:var(--gold); border-color:var(--gold); color:#2A2008; cursor:default; }
+.m-chip .chip-tag{ font-size:9px; font-weight:800; margin-left:5px; opacity:.8; }
+.included{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; color:var(--ink-soft); margin:0 0 16px; }
+.included b{ color:var(--ink); }
+.status-pill{ display:inline-block; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:9px; font-weight:800; letter-spacing:.03em; padding:2px 6px; border-radius:9px; margin-left:6px; vertical-align:1px; }
+.status-pill.prev{ background:var(--gold-soft); color:var(--gold); border:1px dashed var(--gold); }
+.status-pill.dup{ background:var(--alert-soft); color:var(--alert); }
+.status-pill.unk{ background:var(--alert-soft); color:var(--alert); }
+table.grouptbl thead th{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; font-weight:700; letter-spacing:.01em; line-height:1.25; padding:9px 12px; vertical-align:middle; }
+thead th .th-sub{ display:block; font-size:11px; font-weight:400; color:rgba(255,255,255,0.82); margin-top:3px; letter-spacing:0; }
+thead th .th-tag{ display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.04em; padding:1px 6px; border-radius:8px; background:var(--gold); color:#2A2008; margin-bottom:4px; }
+thead th .th-tag.prev{ background:transparent; color:#F1D9A6; border:1px dashed #F1D9A6; margin-left:4px; }
+thead th .tt{ border-bottom:1px dotted rgba(255,255,255,0.6); }
+table.grouptbl thead th.th-ref{ background:#3A3320; }
+table.grouptbl td.td-ref{ font-weight:700; }
+table.grouptbl thead th.th-calc{ background:var(--ink-soft); }
+tbody tr.area-row td{ background:var(--paper-deep) !important; font-weight:700; border-top:2px solid var(--line-strong); }
+tbody tr.area-row td:first-child{ font-size:12px; letter-spacing:.02em; }
+tbody tr.fonte-row td{ background:var(--contrato-soft) !important; font-weight:700; border-top:2px solid var(--line-strong); }
+tbody tr.item-row td:first-child{ padding-left:26px; }
+tbody tr.sin-area td:first-child{ padding-left:26px; }
+td.pct-pos{ color:var(--over-ink); }
+td.pct-neg{ color:var(--under-ink); }
+.grid-2{ display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; }
+@media (max-width:960px){ .grid-2{ grid-template-columns:1fr; } }
+.chart-svg{ width:100%; height:auto; display:block; }
+.chart-svg text{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; fill:var(--ink-soft); }
+.chart-svg .grid{ stroke:var(--line); stroke-width:1; }
+.chart-svg .val{ font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; fill:var(--ink); font-weight:700; }
+.chart-legend{ display:flex; gap:14px; flex-wrap:wrap; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:var(--ink-soft); margin-top:8px; }
+.chart-legend .dot{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+.empty{ padding:26px; text-align:center; color:var(--ink-soft); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13px; }
+.notes-list{ margin:0; padding-left:18px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12.5px; color:var(--ink-soft); line-height:1.55; }
+.notes-list li{ margin-bottom:6px; }
+.notes-list b{ color:var(--ink); }
+.kpi .k-value.over{ color:var(--over-ink); }
+.kpi .k-value.under{ color:var(--under-ink); }
+details.group-acc summary .grp-months .gm.gm-ref .gm-label{ color:var(--gold); }
+.hidden-note{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:11.5px; color:var(--ink-faint); margin:6px 0 14px; }
+.opt-row{ margin-top:-4px; }
+.opt-row .pb-label{ font-size:11px; font-weight:600; color:var(--ink-soft); min-width:150px; }
+.opt-toggles{ display:flex; gap:8px; flex-wrap:wrap; }
+.opt-toggle{ display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border:1px solid var(--line-strong); border-radius:8px; background:var(--card); font-size:12.5px; font-weight:600; color:var(--ink); cursor:pointer; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.opt-toggle input{ width:15px; height:15px; accent-color:var(--ink); margin:0; }
+.opt-toggle .code{ font-family:ui-monospace,'SFMono-Regular',Consolas,monospace; font-size:11px; color:var(--ink-soft); font-weight:500; }
+.opt-toggle.off{ border-style:dashed; color:var(--ink-soft); background:var(--paper-deep); }
+details.group-acc.sep-fonte{ border-left:4px solid var(--gold); }
+tbody tr.fonte-row.sep td{ background:var(--gold-soft) !important; }
+/* ---------- barra de filtros compacta ---------- */
+.filter-bar{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:10px 14px; margin-bottom:16px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+.fb-row{ display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; }
+.fb-row + .fb-row{ border-top:1px solid var(--line); margin-top:9px; padding-top:9px; }
+.fb-item{ display:flex; align-items:center; gap:7px; }
+.fb-cap{ font-size:11.5px; font-weight:600; color:var(--ink-soft); white-space:nowrap; }
+.filter-bar select, .filter-bar input[type=search]{ padding:6px 10px; font-size:12.5px; }
+.filter-bar input[type=search]{ width:170px; }
+#areaSelect{ max-width:200px; }
+#areaSelect{ max-width:180px; }
+.filter-bar .seg button{ padding:6px 11px; font-size:12px; }
+.fb-print{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; }
+.fb-print::before{ content:""; width:13px; height:11px; border:1.6px solid currentColor; border-radius:2px; box-sizing:border-box; box-shadow: inset 0 -4px 0 -2px currentColor; }
+.fb-check{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+.fb-check input{ width:14px; height:14px; accent-color:var(--ink); margin:0; }
+.fb-sep{ width:1px; height:18px; background:var(--line-strong); }
+.filter-bar .opt-toggle{ padding:3px 9px; font-size:12px; border-radius:7px; }
+.filter-bar .month-chip-actions{ margin-left:0; }
+.print-only{ display:none; }
+#includedText{ display:none; }
+
+/* ---------- impressão ---------- */
+@page{ size:A4 landscape; margin:9mm 8mm 10mm; }
+@media print{
+  html, body{ background:#fff !important; background-image:none !important; font-size:10.5px; }
+  *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; box-shadow:none !important; animation:none !important; }
+  .no-print, nav.tabs, .btn, .btn-copy, #jsTooltip, footer.site, .cmp-legend > span:last-child{ display:none !important; }
+  .print-only{ display:block !important; }
+  header.top{ padding:8px 12px; }
+  header.top::after{ display:none; }
+  .top-left h1{ font-size:16px; }
+  .top-left .subtitle, .top-right{ font-size:10px; }
+  main{ padding:8px 0 0; max-width:none; }
+  .panel-head{ margin-bottom:6px; }
+  .panel-head h2{ font-size:15px; }
+  .panel-head p{ display:none; }
+  #printSummary{ border:1px solid var(--line-strong); border-radius:6px; padding:6px 10px; margin-bottom:8px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:10px; color:#333; line-height:1.5; }
+  #printSummary b{ color:#000; }
+  .kpi-row{ grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px; break-inside:avoid; }
+  .kpi{ padding:6px 9px; }
+  .kpi .k-label{ font-size:8.5px; }
+  .kpi .k-value{ font-size:14px; margin-top:2px; }
+  .kpi .k-sub{ font-size:8.5px; }
+  .cmp-legend{ font-size:9px; margin-bottom:6px; gap:8px; }
+  .card{ padding:8px 10px; margin-bottom:8px; border-color:#ccc; }
+  .card h3{ font-size:12px; margin-bottom:2px; }
+  .card .card-desc{ display:none; }
+  .tbl-title-row{ margin-bottom:4px; }
+  details.group-acc{ border:none; border-radius:0; margin-bottom:8px; overflow:visible; break-inside:auto; }
+  details.group-acc summary{ padding:4px 0; break-after:avoid; page-break-after:avoid; }
+  details.group-acc summary .chev, details.group-acc summary .grp-months{ display:none; }
+  details.group-acc summary .grp-name{ font-size:12.5px; }
+  details.group-acc .acc-body{ border-top:none; padding:0; }
+  details.group-acc .acc-body .tbl-title-row{ display:none; }
+  details.group-acc.sep-fonte{ border-left:3px solid var(--gold); padding-left:6px; }
+  .table-scroll{ overflow:visible !important; border:1px solid #ccc; border-radius:4px; }
+  table{ min-width:0 !important; width:100%; font-size:8.6px; table-layout:auto; }
+  table.grouptbl thead th{ font-size:8.6px; padding:4px 5px; }
+  thead th .th-sub{ font-size:7.6px; margin-top:1px; }
+  thead th .th-tag{ font-size:7px; padding:0 4px; margin-bottom:2px; }
+  thead{ display:table-header-group; }
+  tbody td{ padding:3px 5px; }
+  table.grouptbl td:first-child, table.grouptbl th:first-child{ position:static !important; box-shadow:none !important; white-space:normal; max-width:230px; }
+  tr{ break-inside:avoid; page-break-inside:avoid; }
+  tr.area-row, tr.fonte-row{ break-after:avoid; page-break-after:avoid; }
+  .cmp-ic{ font-size:7px; margin-right:3px; }
+  .tt{ border-bottom:none; }
+  .status-pill{ font-size:7px; padding:1px 4px; }
+  .hidden-note{ font-size:9px; margin:2px 0 6px; }
+  .grand-total-bar{ padding:7px 12px; break-inside:avoid; page-break-inside:avoid; }
+  .grand-total-bar .gt-label{ font-size:11px; }
+  .grand-total-bar .gt-values .gtv .gtv-value{ font-size:12px; }
+  #content{ display:none !important; }
+  #printContent > .card{ break-inside:auto; }
+  .print-group{ margin-bottom:10px; }
+  .print-group-head{ display:flex; align-items:baseline; gap:10px; padding:2px 0 4px; break-after:avoid; page-break-after:avoid; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+  .print-group-head .grp-name{ font-weight:700; font-size:12.5px; color:var(--ink); }
+  .print-group-head .grp-count{ font-size:9.5px; color:var(--ink-faint); font-weight:600; }
+  .print-group .acc-body{ padding:0; border:none; }
+  tbody tr.area-row td:first-child, tbody tr.fonte-row td:first-child{ font-size:9.6px; }
+  tbody tr.item-row td:first-child{ padding-left:14px; }
+  tbody td .grp-count{ font-size:8.5px; }
+  .print-group .acc-body .tbl-title-row{ display:none; }
+  .print-group.sep-fonte{ border-left:3px solid var(--gold); padding-left:6px; }
+}
+@media (prefers-reduced-motion: reduce){ section.panel.active{ animation:none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="top-left">
+      <h1>Pagamentos a Fornecedores — Comparativo por Quinzena</h1>
+      <div class="subtitle">Prefeitura Municipal de Olímpia · Tesouraria · Pagamentos por fonte de recurso e área de aplicação</div>
+    </div>
+    <div class="top-right" id="topRight"></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Quinzena analisada">
+  <button class="tab-btn" data-q="1">1ª quinzena</button>
+  <button class="tab-btn" data-q="2">2ª quinzena</button>
+</nav>
+
+<main>
+  <section class="panel active" id="panel-main">
+    <div class="panel-head">
+      <h2 id="panelTitle">Pagamentos a fornecedores</h2>
+      <p id="panelDesc"></p>
+    </div>
+
+    <div id="topNotices" class="no-print"></div>
+
+    <div class="filter-bar no-print" role="region" aria-label="Filtros">
+      <div class="fb-row">
+        <label class="fb-item"><span class="fb-cap">Referência</span><select id="refSelect"></select></label>
+        <div class="fb-item"><span class="fb-cap">Ver</span>
+          <div class="seg" role="group" aria-label="Modo de visualização">
+            <button type="button" data-mode="det">Detalhado</button>
+            <button type="button" data-mode="sin">Sintético</button>
+          </div>
+        </div>
+        <label class="fb-item"><span class="fb-cap">Área</span><select id="areaSelect"></select></label>
+        <label class="fb-item"><span class="fb-cap">Buscar</span><input type="search" id="searchInput" placeholder="Código ou descrição"></label>
+        <button type="button" class="btn primary fb-print" id="btnPrint" title="Imprimir o relatório com os filtros atuais">Imprimir</button>
+      </div>
+      <div class="fb-row">
+        <span class="fb-cap">Comparar com</span>
+        <div class="month-chips" id="periodChips"></div>
+        <div class="month-chip-actions">
+          <button type="button" id="btnDefault">Padrão (4 anteriores)</button>
+          <button type="button" id="btnAll">Todas</button>
+          <button type="button" id="btnNone">Nenhuma</button>
+        </div>
+      </div>
+      <div class="fb-row fb-opts">
+        <label class="fb-check"><input type="checkbox" id="hideZero"> Ocultar vínculos sem pagamento</label>
+        <span class="fb-sep" aria-hidden="true"></span>
+        <span class="fb-cap tt" tabindex="0" data-tt="Marcado: o vínculo entra no Recurso Próprio. Desmarcado: aparece separado, como uma fonte de recurso e uma área próprias.">Somar ao Recurso Próprio</span>
+        <div id="optToggles" class="opt-toggles"></div>
+      </div>
+    </div>
+    <div id="printSummary" class="print-only"></div>
+    <p class="included" id="includedText"></p>
+
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <div class="grid-2 no-print">
+      <div class="card">
+        <h3>Total pago por quinzena e fonte de recurso</h3>
+        <div class="card-desc">Períodos incluídos na análise, em ordem cronológica. A quinzena de referência aparece contornada; valores previstos aparecem hachurados.</div>
+        <div id="chartPeriods"></div>
+      </div>
+      <div class="card">
+        <h3>Referência × média por área de aplicação</h3>
+        <div class="card-desc">Soma de todas as fontes visíveis. Barra cheia: quinzena de referência. Barra clara: média das quinzenas comparadas.</div>
+        <div id="chartAreas"></div>
+      </div>
+    </div>
+
+    <div id="cmpLegend"></div>
+    <div id="content"></div>
+    <div id="printContent" class="print-only"></div>
+    <div id="hiddenNote" class="hidden-note"></div>
+    <div id="totalsStrip"></div>
+
+  </section>
+</main>
+
+<footer class="site" id="footerText"></footer>
+<div id="jsTooltip" role="tooltip"></div>
+
+<script id="data-blob" type="application/json">{"1": {"file": "COMPARATIVO_1_QUINZENA_-_PAG_FORNECEDOR.ods", "periods": [{"id": "2026-10", "year": 2026, "month": 10, "date": "16/10/2026", "sourceHeader": "16/10/2026                (Previsto)", "status": "previsto", "quinzenaHeader": "1", "valid": true}, {"id": "2026-09", "year": 2026, "month": 9, "date": "16/09/2026", "sourceHeader": "16/09/2026                       (1ª Quinzena Setembro)", "status": "realizado", "quinzenaHeader": "1", "valid": true}, {"id": "2026-08", "year": 2026, "month": 8, "date": "17/08/2026", "sourceHeader": "17/08/2026                               (1ª Quinzena Agosto)", "status": "realizado", "quinzenaHeader": "1", "valid": true}, {"id": "2026-07", "year": 2026, "month": 7, "date": "16/07/2026", "sourceHeader": "16/07/2026                               (1ª Quinzena Julho)", "status": "realizado", "quinzenaHeader": "1", "valid": true}, {"id": "2026-06", "year": 2026, "month": 6, "date": "16/06/2026", "sourceHeader": "16/06/2026                               (1ª Quinzena Junho)", "status": "realizado", "quinzenaHeader": "1", "valid": true}, {"id": "2025-09", "year": 2025, "month": 9, "date": null, "sourceHeader": "2025                                         (1ª Quinzena Setembro)", "status": "realizado", "quinzenaHeader": "1", "valid": true}], "rows": [{"label": "01.100.0301 - CORPO DE BOMBEI", "code": "01.100.0301", "sheetGroup": "PRÓPRIO", "sheetRow": 4, "values": [9036.43, 27026.93, 2980.0, 25705.91, 19810.86, 4666.12]}, {"label": "01.100.0588 - CONCESSÃO AGUA", "code": "01.100.0588", "sheetGroup": "PRÓPRIO", "sheetRow": 5, "values": [742750.07, 773999.6, 154863.52, 1219318.34, 948731.96, 56892.64]}, {"label": "01.110.0000 - GERAL", "code": "01.110.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 6, "values": [3058225.76, 2520181.86, 3290521.48, 2718675.11, 2417098.73, 1180694.23]}, {"label": "01.200.0000 - EDUCAÇÃO RECURS", "code": "01.200.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 7, "values": [43548.03, 61634.7, 222074.65, 1159296.04, 28191.1, 259648.22]}, {"label": "01.212.0000 - EDUCAÇÃO INFANT", "code": "01.212.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 8, "values": [11678.8, 135555.73, 24067.99, 31144.78, 38667.81, 18211.46]}, {"label": "01.213.0000 - EDUCAÇÃO INFANT", "code": "01.213.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 9, "values": [4129.33, 57948.45, 27378.47, 51694.22, 50514.45, 7325.76]}, {"label": "01.220.0000 - ENSINO FUNDAMEN", "code": "01.220.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 10, "values": [4506.25, 186973.98, 84513.06, 110993.06, 78740.82, 251047.83]}, {"label": "01.310.0000 - SAUDE GERAL", "code": "01.310.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 11, "values": [349050.33, 752337.76, 354151.89, 780447.55, 523408.44, 786307.26]}, {"label": "01.510.0000 - ASSISTENCIA SOC", "code": "01.510.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 12, "values": [29682.5, 214037.31, 107893.59, 183161.44, 335452.57, 63192.37]}, {"label": "01.120.0000 – ALIENAÇÕES", "code": "01.120.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 13, "values": [580677.38, 170978.18, 107893.59, 305826.12, 48702.54, 0.0]}, {"label": "02.100.0501- CONV 100885/202", "code": "02.100.0501", "sheetGroup": "ESTADUAL", "sheetRow": 16, "values": [0.0, 38673.61, 0.0, 0.0, 0.0, 0.0]}, {"label": "02.300.0045- PAB ESTADUAL", "code": "02.300.0045", "sheetGroup": "ESTADUAL", "sheetRow": 17, "values": [9355.32, 948.0, 0.0, 0.0, 0.0, null]}, {"label": "02.500.0054 - PROTEÇÃO SOCIAL", "code": "02.500.0054", "sheetGroup": "ESTADUAL", "sheetRow": 18, "values": [0.0, 6150.43, 10022.1, 22187.75, 8050.31, 7497.0]}, {"label": "02.500.0062", "code": "02.500.0062", "sheetGroup": "ESTADUAL", "sheetRow": 19, "values": [0.0, 13980.0, 0.0, 0.0, 13508.57, 4167.44]}, {"label": "02.500.0063 - PS ESPECIAL ALT", "code": "02.500.0063", "sheetGroup": "ESTADUAL", "sheetRow": 20, "values": [12537.7, 4082.46, 0.0, 7979.5, 0.0, 10714.63]}, {"label": "02.500.7023 - REPROGRAMAÇÃO B", "code": "02.500.7023", "sheetGroup": "ESTADUAL", "sheetRow": 21, "values": [8010.7, 7924.09, 0.0, 0.0, 12675.0, 0.0]}, {"label": "02.500.7024 - REPROGRAMAÇÃO M", "code": "02.500.7024", "sheetGroup": "ESTADUAL", "sheetRow": 22, "values": [0.0, 12305.58, 5006.47, 0.0, 0.0, 0.0]}, {"label": "02.500.7025 REPROGRAMAÇÃO ALTA", "code": "02.500.7025", "sheetGroup": "ESTADUAL", "sheetRow": 23, "values": [0.0, 0.0, 6790.3, 5344.19, 7926.03, 0.0]}, {"label": "02.500.7026 REPROGRAMAÇÃO", "code": "02.500.7026", "sheetGroup": "ESTADUAL", "sheetRow": 24, "values": [0.0, 0.0, 0.0, 919.75, 0.0, 0.0]}, {"label": "02.500.0738", "code": "02.500.0738", "sheetGroup": "ESTADUAL", "sheetRow": 25, "values": [0.0, 0.0, 4080.0, 4080.0, 0.0, 0.0]}, {"label": "02.300.0045", "code": "02.300.0045", "sheetGroup": "ESTADUAL", "sheetRow": 26, "values": [0.0, 0.0, 1546.58, 3445.41, 39994.33, 719.5]}, {"label": "02.200.0450", "code": "02.200.0450", "sheetGroup": "ESTADUAL", "sheetRow": 27, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 203379.13]}, {"label": "02.300.0669", "code": "02.300.0669", "sheetGroup": "ESTADUAL", "sheetRow": 28, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 51934.43]}, {"label": "02.500.0720", "code": "02.500.0720", "sheetGroup": "ESTADUAL", "sheetRow": 29, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 4258.97]}, {"label": "02.801.7012", "code": "02.801.7012", "sheetGroup": "ESTADUAL", "sheetRow": 30, "values": [46026.9, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.100.0398 - LEI ALDIR BLANC", "code": "05.100.0398", "sheetGroup": "FEDERAL", "sheetRow": 33, "values": [0.0, 19999.99, 0.0, 302207.88, 0.0, 0.0]}, {"label": "05.210.0697 - FNDE PAR 2024", "code": "05.210.0697", "sheetGroup": "FEDERAL", "sheetRow": 34, "values": [0.0, 75227.19, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.280.0500 - QESE CRECHE", "code": "05.280.0500", "sheetGroup": "FEDERAL", "sheetRow": 35, "values": [7704.4, 42884.25, 109326.5, 9297.31, 1513.2, 1854.8]}, {"label": "05.281.0500 - QESE PRE ESCOLA", "code": "05.281.0500", "sheetGroup": "FEDERAL", "sheetRow": 36, "values": [3822.38, 3651.53, 14314.24, 194457.36, 0.0, 3576.43]}, {"label": "05.282.0500 - QESE FUNDAMENTA", "code": "05.282.0500", "sheetGroup": "FEDERAL", "sheetRow": 37, "values": [25911.27, 72120.82, 104770.89, 21911.97, 23922.78, 82928.73]}, {"label": "05.283.0600", "code": "05.283.0600", "sheetGroup": "FEDERAL", "sheetRow": 38, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 20129.5]}, {"label": "05.285.0600 - PNAE FUNDAMENTA", "code": "05.285.0600", "sheetGroup": "FEDERAL", "sheetRow": 39, "values": [36848.82, 43669.51, 20974.3, 26206.14, 37273.92, 29963.42]}, {"label": "05.294.0626", "code": "05.294.0626", "sheetGroup": "FEDERAL", "sheetRow": 40, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 21696.08]}, {"label": "05.300.0011 - FNS - GESTAO PL", "code": "05.300.0011", "sheetGroup": "FEDERAL", "sheetRow": 41, "values": [34961.489, 32289.36, 1490.0, 0.0, 0.0, 0.0]}, {"label": "05.300.0014 – FNS -AIDS", "code": "05.300.0014", "sheetGroup": "FEDERAL", "sheetRow": 42, "values": [18.6, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.300.0027 - FNS - BLAFB ATE", "code": "05.300.0027", "sheetGroup": "FEDERAL", "sheetRow": 43, "values": [4436.4, 30315.35, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.300.0059 - SAUDE BUCAL", "code": "05.300.0059", "sheetGroup": "FEDERAL", "sheetRow": 44, "values": [267.2, 875.0, 10643.67, 7216.97, 5524.38, 474.24]}, {"label": "05.300.0060 – SAMU", "code": "05.300.0060", "sheetGroup": "FEDERAL", "sheetRow": 45, "values": [9275.7, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.300.0160 - BL VIGILANCIA E", "code": "05.300.0160", "sheetGroup": "FEDERAL", "sheetRow": 46, "values": [0.0, 513.4, 872.96, 4080.0, 0.0, 0.0]}, {"label": "05.500.0068", "code": "05.500.0068", "sheetGroup": "FEDERAL", "sheetRow": 47, "values": [0.0, 0.0, 0.0, 0.0, 1688.98, 0.0]}, {"label": "05.300.0331 - PROGRAMA MELHOR", "code": "05.300.0331", "sheetGroup": "FEDERAL", "sheetRow": 48, "values": [22170.0, 3648.56, 977.57, 0.0, 9086.68, 34799.53]}, {"label": "05.300.0350", "code": "05.300.0350", "sheetGroup": "FEDERAL", "sheetRow": 49, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 42923.42]}, {"label": "05.300.0663", "code": "05.300.0663", "sheetGroup": "FEDERAL", "sheetRow": 50, "values": [0.0, 82832.41, 0.0, 0.0, 0.0, 76.55]}, {"label": "05.300.0664", "code": "05.300.0664", "sheetGroup": "FEDERAL", "sheetRow": 51, "values": [0.0, 0.0, 0.0, 20776.34, 0.0, 0.0]}, {"label": "05.500.0049", "code": "05.500.0049", "sheetGroup": "FEDERAL", "sheetRow": 52, "values": [0.0, 0.0, 44529.16, 0.0, 0.0, 0.0]}, {"label": "05.500.0341 - BLOCO PROTEÇÃO", "code": "05.500.0341", "sheetGroup": "FEDERAL", "sheetRow": 53, "values": [5049.0, 11396.36, 5087.44, 27275.29, 40030.8, 1668.44]}, {"label": "05.500.0342 - BLOCO PROTEÇÃO", "code": "05.500.0342", "sheetGroup": "FEDERAL", "sheetRow": 54, "values": [0.0, 17879.4, 0.0, 30301.37, 11912.45, 0.0]}, {"label": "05.800.0341 – EMENDA", "code": "05.800.0341", "sheetGroup": "FEDERAL", "sheetRow": 55, "values": [0.0, 0.0, 297691.11, 0.0, 0.0, 0.0]}, {"label": "05.800.7043 - EMENDA MAC 2026", "code": "05.800.7043", "sheetGroup": "FEDERAL", "sheetRow": 56, "values": [0.0, 117040.31, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.800.7036", "code": "05.800.7036", "sheetGroup": "FEDERAL", "sheetRow": 57, "values": [0.0, 0.0, 0.0, 6987.88, 0.0, 0.0]}, {"label": "05.800.7039", "code": "05.800.7039", "sheetGroup": "FEDERAL", "sheetRow": 58, "values": [0.0, 0.0, 0.0, 25690.0, 0.0, 0.0]}, {"label": "05.800.7044 – EMENDA MAC 2026", "code": "05.800.7044", "sheetGroup": "FEDERAL", "sheetRow": 59, "values": [44955.0, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.902.7032 – EMENDA ATENÇÃO", "code": "05.902.7032", "sheetGroup": "FEDERAL", "sheetRow": 60, "values": [0.0, 3750.8, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.902.7033", "code": "05.902.7033", "sheetGroup": "FEDERAL", "sheetRow": 61, "values": [0.0, 0.0, 0.0, 139675.87, 0.0, 0.0]}], "sheetTotals": {"PRÓPRIO": [4833284.88, 4900674.5, 4376338.24, 6586262.57, 4489319.28, 2627985.89], "ESTADUAL": [75930.62, 84064.17, 27445.45, 43956.6, 82154.24, 282671.1], "FEDERAL": [195420.259, 558094.24, 610677.84, 816084.38, 130953.19, 240091.14]}, "sheetGrandTotal": [5104635.759, 5542832.91, 5014461.53, 7446303.55, 4702426.71, 3150748.13]}, "2": {"file": "COMPARATIVO_2_QUINZENA_-_PAG_FORNECEDOR_-_Copia.ods", "periods": [{"id": "2026-10", "year": 2026, "month": 10, "date": "29/10/2026", "sourceHeader": "29/10/2026                (Previsto)", "status": "previsto", "quinzenaHeader": "2", "valid": true}, {"id": "2026-09", "year": 2026, "month": 9, "date": "29/09/2026", "sourceHeader": "29/09/2026                   (2ª Quinzena Setembro)", "status": "realizado", "quinzenaHeader": "2", "valid": true}, {"id": "2026-08", "year": 2026, "month": 8, "date": "27/08/2026", "sourceHeader": "27/08/2026                               (2ª Quinzena Agosto)", "status": "realizado", "quinzenaHeader": "2", "valid": true}, {"id": "2026-07", "year": 2026, "month": 7, "date": "30/07/2026", "sourceHeader": "30/07/2026                               (2ª Quinzena Julho)", "status": "realizado", "quinzenaHeader": "2", "valid": true}, {"id": "2026-06", "year": 2026, "month": 6, "date": "29/06/2026", "sourceHeader": "29/06/2026                                       (2ª Quinzena Junho)", "status": "realizado", "quinzenaHeader": "2", "valid": true}, {"id": "2025-09", "year": 2025, "month": 9, "date": null, "sourceHeader": "2025                                         (1ª Quinzena Setembro)", "status": "realizado", "quinzenaHeader": "1", "valid": false}], "rows": [{"label": "01.100.0301 - CORPO DE BOMBEI", "code": "01.100.0301", "sheetGroup": "PRÓPRIO", "sheetRow": 4, "values": [15753.66, 14.43, 9329.14, 8911.2, 20736.8, 4666.12]}, {"label": "01.100.0588 - CONCESSÃO AGUA", "code": "01.100.0588", "sheetGroup": "PRÓPRIO", "sheetRow": 5, "values": [643318.72, 544896.31, 617985.78, 0.0, 0.0, 56892.64]}, {"label": "01.120.0000 – ALIENAÇÕES", "code": "01.120.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 6, "values": [152705.1, 0.0, 4697968.56, 3446582.32, 0.0, 0.0]}, {"label": "01.110.0000 - GERAL", "code": "01.110.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 7, "values": [4880575.69, 2558800.39, 154899.89, 843810.35, 5294643.15, 1180694.23]}, {"label": "01.200.0000 - EDUCAÇÃO RECURS", "code": "01.200.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 8, "values": [1413526.85, 1344210.18, 21025.21, 1438669.34, 102811.67, 259648.22]}, {"label": "01.212.0000 - EDUCAÇÃO INFANT", "code": "01.212.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 9, "values": [160092.47, 125889.05, 43812.72, 185013.55, 184934.54, 18211.46]}, {"label": "01.213.0000 - EDUCAÇÃO INFANT", "code": "01.213.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 10, "values": [70121.12, 55208.18, 29295.13, 61752.3, 66025.44, 7325.76]}, {"label": "01.220.0000 - ENSINO FUNDAMEN", "code": "01.220.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 11, "values": [395252.14, 348584.88, 237563.85, 254989.95, 159264.97, 251047.83]}, {"label": "01.310.0000 - SAUDE GERAL", "code": "01.310.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 12, "values": [500629.5, 1264227.15, 721298.86, 490855.89, 454031.82, 786307.26]}, {"label": "01.510.0000 - ASSISTENCIA SOC", "code": "01.510.0000", "sheetGroup": "PRÓPRIO", "sheetRow": 13, "values": [166044.91, 248360.98, 146842.78, 85794.63, 160588.67, 63192.37]}, {"label": "02.100.0501- CONV 100885/202", "code": "02.100.0501", "sheetGroup": "ESTADUAL", "sheetRow": 16, "values": [0.0, 0.0, 0.0, 0.0, 141007.72, 0.0]}, {"label": "02.100.0736", "code": "02.100.0736", "sheetGroup": "ESTADUAL", "sheetRow": 17, "values": [0.0, 0.0, 0.0, 0.0, 188599.72, null]}, {"label": "02.100.7007 – RECAPE COV 1008", "code": "02.100.7007", "sheetGroup": "ESTADUAL", "sheetRow": 18, "values": [245651.34, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "02.200.0450 – TRANSPORTE ESTAD", "code": "02.200.0450", "sheetGroup": "ESTADUAL", "sheetRow": 19, "values": [324496.68, 316416.72, 70263.71, 149135.56, 0.0, null]}, {"label": "02.300.0041", "code": "02.300.0041", "sheetGroup": "ESTADUAL", "sheetRow": 20, "values": [0.0, 23712.0, 0.0, 0.0, 0.0, null]}, {"label": "02.300.0045- PAB ESTADUAL", "code": "02.300.0045", "sheetGroup": "ESTADUAL", "sheetRow": 21, "values": [39353.06, 42378.4, 25155.08, 1377.37, 17417.58, null]}, {"label": "02.300.0654", "code": "02.300.0654", "sheetGroup": "ESTADUAL", "sheetRow": 22, "values": [0.0, 542991.86, 0.0, 0.0, 0.0, null]}, {"label": "02.300.0669", "code": "02.300.0669", "sheetGroup": "ESTADUAL", "sheetRow": 23, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 51934.43]}, {"label": "02.500.0054 - PROTEÇÃO SOCIAL", "code": "02.500.0054", "sheetGroup": "ESTADUAL", "sheetRow": 24, "values": [20005.19, 1034.94, 0.0, 21245.39, 3981.25, 7497.0]}, {"label": "02.500.0062", "code": "02.500.0062", "sheetGroup": "ESTADUAL", "sheetRow": 25, "values": [0.0, 0.0, 1208.55, 4783.85, 1317.02, 4167.44]}, {"label": "02.500.0063 - PS ESPECIAL ALT", "code": "02.500.0063", "sheetGroup": "ESTADUAL", "sheetRow": 26, "values": [7093.68, 5385.62, 1778.8, 2371.4, 0.0, 10714.63]}, {"label": "02.500.0527", "code": "02.500.0527", "sheetGroup": "ESTADUAL", "sheetRow": 27, "values": [0.0, 0.0, 573.25, 0.0, 0.0, null]}, {"label": "02.500.0737", "code": "02.500.0737", "sheetGroup": "ESTADUAL", "sheetRow": 28, "values": [0.0, 0.0, 0.0, 30000.0, 0.0, null]}, {"label": "02.500.0738", "code": "02.500.0738", "sheetGroup": "ESTADUAL", "sheetRow": 29, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "02.500.0720", "code": "02.500.0720", "sheetGroup": "ESTADUAL", "sheetRow": 30, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 4258.97]}, {"label": "02.500.7023 - REPROGRAMAÇÃO B", "code": "02.500.7023", "sheetGroup": "ESTADUAL", "sheetRow": 31, "values": [0.0, 0.0, 5656.5, 0.0, 0.0, 0.0]}, {"label": "02.500.7024 - REPROGRAMAÇÃO M", "code": "02.500.7024", "sheetGroup": "ESTADUAL", "sheetRow": 32, "values": [1166.63, 0.0, 18986.7, 0.0, 0.0, 0.0]}, {"label": "02.500.7025 REPROGRAMAÇÃO ALTA", "code": "02.500.7025", "sheetGroup": "ESTADUAL", "sheetRow": 33, "values": [0.0, 0.0, 1389.82, 1890.0, 375.0, 0.0]}, {"label": "02.500.7026 REPROGRAMAÇÃO", "code": "02.500.7026", "sheetGroup": "ESTADUAL", "sheetRow": 34, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "02.801.0725 – EMENDA CUSTEIO", "code": "02.801.0725", "sheetGroup": "ESTADUAL", "sheetRow": 35, "values": [48818.78, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "02.801.0728", "code": "02.801.0728", "sheetGroup": "ESTADUAL", "sheetRow": 36, "values": [0.0, 283.6, 901.65, 0.0, 0.0, null]}, {"label": "02.801.0730 – EMENDA CUSTEIO", "code": "02.801.0730", "sheetGroup": "ESTADUAL", "sheetRow": 37, "values": [291.27, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "02.801.7012 – EMENDA 20260627", "code": "02.801.7012", "sheetGroup": "ESTADUAL", "sheetRow": 38, "values": [51242.8, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.100.0398 - LEI ALDIR BLANC", "code": "05.100.0398", "sheetGroup": "FEDERAL", "sheetRow": 41, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.210.0697 - FNDE PAR 2024", "code": "05.210.0697", "sheetGroup": "FEDERAL", "sheetRow": 42, "values": [0.0, 69118.63, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.280.0500 - QESE CRECHE", "code": "05.280.0500", "sheetGroup": "FEDERAL", "sheetRow": 43, "values": [61026.22, 25635.4, 29894.98, 36170.26, 28825.06, 1854.8]}, {"label": "05.281.0500 - QESE PRE ESCOLA", "code": "05.281.0500", "sheetGroup": "FEDERAL", "sheetRow": 44, "values": [42819.6, 2360.0, 4340.66, 79039.4, 31809.39, 3576.43]}, {"label": "05.282.0500 - QESE FUNDAMENTA", "code": "05.282.0500", "sheetGroup": "FEDERAL", "sheetRow": 45, "values": [167499.7, 68677.2, 58808.16, 55286.58, 59529.47, 82928.73]}, {"label": "05.283.0600", "code": "05.283.0600", "sheetGroup": "FEDERAL", "sheetRow": 46, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 20129.5]}, {"label": "05.285.0600 - PNAE FUNDAMENTA", "code": "05.285.0600", "sheetGroup": "FEDERAL", "sheetRow": 47, "values": [28538.82, 34070.29, 33096.57, 14229.94, 34685.64, 29963.42]}, {"label": "05.294.0626", "code": "05.294.0626", "sheetGroup": "FEDERAL", "sheetRow": 48, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 21696.08]}, {"label": "05.300.0011 - FNS - GESTAO PL", "code": "05.300.0011", "sheetGroup": "FEDERAL", "sheetRow": 49, "values": [0.0, 7385.2, 56596.59, 5335.2, 6415.2, 0.0]}, {"label": "05.300.0014 – FNS -AIDS", "code": "05.300.0014", "sheetGroup": "FEDERAL", "sheetRow": 50, "values": [6639.9, 0.0, 0.0, 0.0, 0.0, null]}, {"label": "05.300.0026", "code": "05.300.0026", "sheetGroup": "FEDERAL", "sheetRow": 51, "values": [0.0, 0.0, 0.0, 0.0, 87986.93, null]}, {"label": "05.300.0027 - FNS - BLAFB ATE", "code": "05.300.0027", "sheetGroup": "FEDERAL", "sheetRow": 52, "values": [3450.0, 60859.18, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.300.0059 - SAUDE BUCAL", "code": "05.300.0059", "sheetGroup": "FEDERAL", "sheetRow": 53, "values": [15150.44, 2070.45, 6007.65, 12376.5, 0.0, 474.24]}, {"label": "05.300.0060 – SAMU", "code": "05.300.0060", "sheetGroup": "FEDERAL", "sheetRow": 54, "values": [4143.73, 3944.83, 5011.71, 3944.83, 16574.83, null]}, {"label": "05.300.0160 - BL VIGILANCIA E", "code": "05.300.0160", "sheetGroup": "FEDERAL", "sheetRow": 55, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.500.0068", "code": "05.500.0068", "sheetGroup": "FEDERAL", "sheetRow": 56, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.300.0330", "code": "05.300.0330", "sheetGroup": "FEDERAL", "sheetRow": 57, "values": [0.0, 2576.0, 0.0, 0.0, 0.0, null]}, {"label": "05.300.0331 - PROGRAMA MELHOR", "code": "05.300.0331", "sheetGroup": "FEDERAL", "sheetRow": 58, "values": [6484.5, 689.0, 0.0, 4366.96, 2228.0, 34799.53]}, {"label": "05.300.0350", "code": "05.300.0350", "sheetGroup": "FEDERAL", "sheetRow": 59, "values": [0.0, 0.0, 0.0, 0.0, 29798.79, 42923.42]}, {"label": "05.300.0663 – APS INCENTIVO", "code": "05.300.0663", "sheetGroup": "FEDERAL", "sheetRow": 60, "values": [17214.28, 6885.71, 0.0, 0.0, 0.0, 76.55]}, {"label": "05.300.0664", "code": "05.300.0664", "sheetGroup": "FEDERAL", "sheetRow": 61, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.300.0713", "code": "05.300.0713", "sheetGroup": "FEDERAL", "sheetRow": 62, "values": [0.0, 0.0, 0.0, 0.0, 383128.62, null]}, {"label": "05.500.0049 – IND GESTÃO DESC", "code": "05.500.0049", "sheetGroup": "FEDERAL", "sheetRow": 63, "values": [19188.75, 9154.29, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.500.0068", "code": "05.500.0068", "sheetGroup": "FEDERAL", "sheetRow": 64, "values": [0.0, 0.0, 0.0, 0.0, 865.5, null]}, {"label": "05.500.0341 - BLOCO PROTEÇÃO", "code": "05.500.0341", "sheetGroup": "FEDERAL", "sheetRow": 65, "values": [4357.0, 20684.07, 2375.6, 8122.44, 22043.77, 1668.44]}, {"label": "05.500.0342 - BLOCO PROTEÇÃO", "code": "05.500.0342", "sheetGroup": "FEDERAL", "sheetRow": 66, "values": [3840.45, 0.0, 6241.1, 10102.25, 1274.93, 0.0]}, {"label": "05.800.0341 – EMENDA", "code": "05.800.0341", "sheetGroup": "FEDERAL", "sheetRow": 67, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.800.0613", "code": "05.800.0613", "sheetGroup": "FEDERAL", "sheetRow": 68, "values": [0.0, 0.0, 0.0, 0.0, 64033.89, null]}, {"label": "05.800.7036", "code": "05.800.7036", "sheetGroup": "FEDERAL", "sheetRow": 69, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.800.7039", "code": "05.800.7039", "sheetGroup": "FEDERAL", "sheetRow": 70, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.800.7040 – EMENDA ATENÇÃO", "code": "05.800.7040", "sheetGroup": "FEDERAL", "sheetRow": 71, "values": [43200.0, 0.0, 0.0, 21600.0, 0.0, null]}, {"label": "05.800.7043 - EMENDA MAC 2026", "code": "05.800.7043", "sheetGroup": "FEDERAL", "sheetRow": 72, "values": [0.0, 53092.22, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.800.7044 – EMENDA MAC 2026", "code": "05.800.7044", "sheetGroup": "FEDERAL", "sheetRow": 73, "values": [0.0, 2709.21, 0.0, 0.0, 0.0, null]}, {"label": "05.902.7032 – EMENDA ATENÇÃO", "code": "05.902.7032", "sheetGroup": "FEDERAL", "sheetRow": 74, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"label": "05.902.7033", "code": "05.902.7033", "sheetGroup": "FEDERAL", "sheetRow": 75, "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}], "sheetTotals": {"PRÓPRIO": [8398020.16, 6490191.55, 6680021.92, 6816379.53, 6443037.06, 2627985.89], "ESTADUAL": [738119.43, 932203.14, 125914.06, 210803.57, 352698.29, 26638.04], "FEDERAL": [423553.39, 369911.68, 202373.02, 250574.36, 769200.02, 240091.14]}, "sheetGrandTotal": [9559692.98, 7792306.37, 7008309.0, 7277757.46, 7564935.37, 2894715.07]}}</script>
+<script>
+(function(){
+'use strict';
+
+const DATA = JSON.parse(document.getElementById('data-blob').textContent);
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_AB = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const EPS = 0.005;
+
+/* ================= REGRAS DE CLASSIFICAÇÃO (centralizadas) ================= */
+// Fonte de Recurso: 1º grupo do vínculo, lido como código (texto), nunca como número.
+// Área de aplicação: 2º grupo do vínculo. A família de cada área é definida pela centena:
+// 200–299 Educação (ex.: 200, 212, 220, 280), 300–399 Saúde, 500–599 Assistência Social.
+const RULES = {
+  fonte: [
+    {prefix:'01', key:'proprio',  name:'Recurso Próprio',  color:'var(--contrato)'},
+    {prefix:'02', key:'estadual', name:'Recurso Estadual', color:'var(--gold)'},
+    {prefix:'05', key:'federal',  name:'Recurso Federal',  color:'var(--receita)'},
+    {prefix:'07', key:'finisa',   name:'FINISA',           color:'var(--despesa)'}
+  ],
+  fonteUnknown: {key:'nao-identificada', name:'Fonte não identificada', color:'var(--alert)'},
+  area: [
+    {from:200, to:299, key:'educacao',    name:'Educação'},
+    {from:300, to:399, key:'saude',       name:'Saúde'},
+    {from:500, to:599, key:'assistencia', name:'Assistência Social'}
+  ],
+  areaOther: {key:'outras', name:'Outras áreas / Não classificado'}
+};
+// Itens opcionais do Recurso Próprio: o usuário decide, um a um, se entram na soma.
+// A identificação é feita pelo código completo do vínculo (texto), nunca por aproximação.
+const OPTIONAL_PROPRIO = [
+  {key:'alienacoes', name:'Alienações',      codes:['01.120.0000'], fonte:{key:'sep-alienacoes', name:'Alienações', color:'#7B5EA7', separated:true}, area:{key:'sep-alienacoes', name:'Alienações', separated:true}},
+  {key:'concessao',  name:'Concessão Água',  codes:['01.100.0588'], fonte:{key:'sep-concessao',  name:'Concessão Água', color:'#2F8C9A', separated:true}, area:{key:'sep-concessao', name:'Concessão Água', separated:true}}
+];
+function optionalKeyOf(code){
+  const o = OPTIONAL_PROPRIO.filter(function(x){ return x.codes.indexOf(code) >= 0; })[0];
+  return o ? o.key : null;
+}
+// Quando separados do Recurso Próprio, Alienações e Concessão também deixam “Outras áreas” e viram agrupamentos próprios.
+const AREA_ORDER = RULES.area.concat([RULES.areaOther], OPTIONAL_PROPRIO.map(function(o){ return o.area; }));
+// Ordem das fontes: as separadas (Alienações, Concessão) aparecem logo após o Recurso Próprio, só quando desmarcadas.
+const FONTE_ORDER = [RULES.fonte[0]].concat(OPTIONAL_PROPRIO.map(function(o){ return o.fonte; }), RULES.fonte.slice(1), [RULES.fonteUnknown]);
+
+function parseVinculo(label){
+  const m = /^\s*(\d{2})\.(\d{3})\.(\d{4})/.exec(String(label||''));
+  return m ? {g1:m[1], g2:m[2], g3:m[3], code:m[1]+'.'+m[2]+'.'+m[3]} : null;
+}
+function classifyVinculo(label){
+  const v = parseVinculo(label);
+  let fonte = RULES.fonteUnknown, area = RULES.areaOther;
+  if (v){
+    fonte = RULES.fonte.filter(function(f){ return f.prefix === v.g1; })[0] || RULES.fonteUnknown;
+    const g2 = parseInt(v.g2, 10); // apenas para comparar a faixa do grupo; o código segue como texto
+    area = RULES.area.filter(function(a){ return g2 >= a.from && g2 <= a.to; })[0] || RULES.areaOther;
+  }
+  return {code: v ? v.code : null, fonte: fonte, area: area};
+}
+
+/* ================= FORMATAÇÃO ================= */
+function fmtBRL(v, opts){
+  opts = opts || {};
+  if (v===null || v===undefined || isNaN(v)) return opts.dash===false ? '0,00' : '—';
+  const neg = v < -0.004;
+  const str = Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return (neg ? '-' : '') + str;
+}
+function fmtPct(v, signed){
+  if (v===null||v===undefined||isNaN(v)||!isFinite(v)) return '—';
+  const s = (v*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+  return (signed && v > 0 ? '+' : '') + s;
+}
+function fmtShort(v){
+  const a = Math.abs(v);
+  if (a >= 1e6) return (v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1}) + ' mi';
+  if (a >= 1e3) return (v/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0}) + ' mil';
+  return v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ================= PREPARAÇÃO DOS DADOS ================= */
+const Q = {};
+['1','2'].forEach(function(q){
+  const src = DATA[q];
+  const periods = src.periods.map(function(p, k){
+    return Object.assign({}, p, {k:k,
+      short: MESES_AB[p.month-1]+'/'+String(p.year).slice(2),
+      long: MESES[p.month-1]+'/'+p.year});
+  });
+  // Uma única linha por vínculo: linhas da planilha com o mesmo código são unificadas,
+  // somando os valores de cada quinzena. Célula vazia + célula vazia continua vazia (não vira zero).
+  const byCode = {}, order = [];
+  src.rows.forEach(function(r){
+    const key = r.code || ('sem-codigo|'+r.label);
+    if (!byCode[key]){ byCode[key] = {label:r.label, code:r.code, sheetGroup:r.sheetGroup, sheetRows:[r.sheetRow], labels:[r.label], values:r.values.slice()}; order.push(key); return; }
+    const m = byCode[key];
+    m.sheetRows.push(r.sheetRow); m.labels.push(r.label);
+    if (r.label.length > m.label.length) m.label = r.label; // mantém a descrição mais completa da planilha
+    m.values = m.values.map(function(v, k){
+      const w = r.values[k];
+      if (v===null && w===null) return null;
+      return Math.round(((v||0) + (w||0))*1000)/1000;
+    });
+  });
+  const rows = order.map(function(key, i){
+    const m = byCode[key], c = classifyVinculo(m.label);
+    return {id:q+'-'+i, label:m.label, code:c.code, fonte:c.fonte, area:c.area,
+            optKey: optionalKeyOf(c.code), sheetRow:m.sheetRows[0], sheetRows:m.sheetRows, sheetGroup:m.sheetGroup,
+            values:m.values, merged: m.sheetRows.length > 1 ? m : null};
+  });
+  Q[q] = {file:src.file, periods:periods, valid:periods.filter(function(p){ return p.valid; }), rows:rows,
+          sheetTotals:src.sheetTotals, sheetGrandTotal:src.sheetGrandTotal};
+});
+function periodById(q, id){ return Q[q].valid.filter(function(p){ return p.id===id; })[0] || null; }
+function monthShift(id, n){ const y=+id.slice(0,4), m=+id.slice(5,7)-1+n; const d=new Date(y, m, 1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+
+/* ================= ESTADO E PREFERÊNCIAS ================= */
+const PREF_KEY = 'pmo.pagFornecedoresQuinzena.v1';
+function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(PREF_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify({include:S.include, mode:S.mode, area:S.area, hideZero:S.hideZero, ref:S.ref, cmp:S.cmp, open:S.open})); }catch(e){} }
+const P = loadPrefs();
+const S = {
+  q:'1', mode: P.mode==='sin' ? 'sin' : 'det', area: P.area || 'all', search:'',
+  hideZero: P.hideZero !== undefined ? !!P.hideZero : true,
+  ref: P.ref || {}, cmp: P.cmp || {}, open: P.open || {},
+  include: (function(){ const inc = {}; OPTIONAL_PROPRIO.forEach(function(o){ inc[o.key] = !(P.include && P.include[o.key] === false); }); return inc; })()
+};
+
+/* ================= SELEÇÃO AUTOMÁTICA DA QUINZENA ================= */
+// Regra: dias 1 a 15 → 1ª quinzena; dia 16 até o fim do mês → 2ª quinzena, do mês corrente.
+const TODAY = new Date();
+const AUTO = { q: TODAY.getDate() <= 15 ? '1' : '2',
+               id: TODAY.getFullYear()+'-'+String(TODAY.getMonth()+1).padStart(2,'0') };
+const autoNotices = []; let AUTO_REF = null;
+function bestRefFor(q, wantedId){
+  if (periodById(q, wantedId)) return wantedId;
+  const ids = Q[q].valid.map(function(p){ return p.id; }).sort();
+  const before = ids.filter(function(id){ return id <= wantedId; });
+  return before.length ? before[before.length-1] : ids[ids.length-1];
+}
+(function(){
+  S.q = AUTO.q;
+  const chosen = bestRefFor(AUTO.q, AUTO.id);
+  const wantedLabel = MESES[+AUTO.id.slice(5)-1].toLowerCase()+'/'+AUTO.id.slice(0,4);
+  const dia = TODAY.toLocaleDateString('pt-BR');
+  if (chosen === AUTO.id){
+    // Quinzena do dia encontrada: seleção silenciosa, sem aviso.
+  } else {
+    const p = periodById(AUTO.q, chosen);
+    autoNotices.push({type:'warn', text:'A '+AUTO.q+'ª quinzena de '+wantedLabel+' (período correspondente a hoje, '+dia+') ainda não tem dados nas planilhas. Foi selecionado o período disponível mais recente: <b>'+AUTO.q+'ª quinzena de '+p.long.toLowerCase()+'</b>.'});
+  }
+  S.ref[AUTO.q] = chosen; AUTO_REF = chosen;
+})();
+['1','2'].forEach(function(q){
+  if (!S.ref[q] || !periodById(q, S.ref[q])) S.ref[q] = bestRefFor(q, AUTO.id);
+});
+
+function defaultCompare(q, refId){
+  const ids=[], missing=[];
+  for (let n=1; n<=4; n++){
+    const id = monthShift(refId, -n);
+    if (periodById(q, id)) ids.push(id); else missing.push(id);
+  }
+  return {ids:ids, missing:missing};
+}
+function cmpKey(){ return S.q+'|'+S.ref[S.q]; }
+function currentCompare(){
+  const saved = S.cmp[cmpKey()];
+  const ref = S.ref[S.q];
+  if (Array.isArray(saved)) return saved.filter(function(id){ return id!==ref && periodById(S.q,id); });
+  return defaultCompare(S.q, ref).ids;
+}
+function selectedPeriods(){
+  const ref = periodById(S.q, S.ref[S.q]);
+  const cmp = currentCompare().map(function(id){ return periodById(S.q,id); }).sort(function(a,b){ return a.id < b.id ? 1 : -1; });
+  return {ref:ref, cmp:cmp, all:[ref].concat(cmp)};
+}
+
+/* ================= CÁLCULO ================= */
+function sumNullable(list){
+  let any=false, s=0;
+  list.forEach(function(v){ if (v!==null && v!==undefined){ any=true; s+=v; } });
+  return any ? s : null;
+}
+function seriesFor(rows, periods){
+  const out = {};
+  periods.forEach(function(p){ out[p.id] = sumNullable(rows.map(function(r){ return r.values[p.k]; })); });
+  return out;
+}
+function stats(series, sel){
+  const refV = series[sel.ref.id];
+  const cmpVals = sel.cmp.map(function(p){ return series[p.id]; }).filter(function(v){ return v!==null; });
+  const avg = cmpVals.length ? cmpVals.reduce(function(a,b){return a+b;},0)/cmpVals.length : null;
+  const prevP = sel.cmp.filter(function(p){ return p.id < sel.ref.id; })[0] || null;
+  const prevV = prevP ? series[prevP.id] : null;
+  const dAvg = (refV!==null && avg!==null) ? refV-avg : null;
+  return {ref:refV, avg:avg, dAvg:dAvg,
+          pAvg: (dAvg!==null && Math.abs(avg)>=EPS) ? dAvg/Math.abs(avg) : null,
+          prevP:prevP, prev:prevV,
+          pPrev: (refV!==null && prevV!==null && Math.abs(prevV)>=EPS) ? (refV-prevV)/Math.abs(prevV) : null};
+}
+function cmpState(st){
+  if (st.ref===null || st.avg===null || Math.abs(st.dAvg) < EPS) return null;
+  const pct = st.pAvg!==null ? ' ('+fmtPct(st.pAvg,true)+')' : '';
+  if (st.dAvg > 0) return {cls:'cmp-over', icon:'\u25B2', tip:'Acima da média das quinzenas comparadas em R$ '+fmtBRL(st.dAvg,{dash:false})+pct};
+  return {cls:'cmp-under', icon:'\u25BC', tip:'Abaixo da média das quinzenas comparadas em R$ '+fmtBRL(-st.dAvg,{dash:false})+pct};
+}
+
+function filteredRows(){
+  const term = S.search.trim().toLowerCase();
+  return Q[S.q].rows.map(function(r){
+    if (r.optKey && !S.include[r.optKey]){
+      const o = OPTIONAL_PROPRIO.filter(function(x){ return x.key===r.optKey; })[0];
+      return Object.assign({}, r, {fonte:o.fonte, area:o.area});
+    }
+    return r;
+  }).filter(function(r){
+    if (S.area!=='all' && r.area.key!==S.area) return false;
+    if (term && r.label.toLowerCase().indexOf(term) < 0) return false;
+    return true;
+  });
+}
+function isZeroRow(r, sel){
+  return sel.all.every(function(p){ const v=r.values[p.k]; return v===null || Math.abs(v) < EPS; });
+}
+function buildTree(rows){
+  const tree = [];
+  FONTE_ORDER.forEach(function(f){
+    const fr = rows.filter(function(r){ return r.fonte.key===f.key; });
+    if (!fr.length) return;
+    const areas = [];
+    AREA_ORDER.forEach(function(a){
+      const ar = fr.filter(function(r){ return r.area.key===a.key; });
+      if (ar.length) areas.push({area:a, rows:ar});
+    });
+    tree.push({fonte:f, rows:fr, areas:areas});
+  });
+  return tree;
+}
+
+/* ================= TOOLTIP / CÓPIA (mesmo comportamento do painel de referência) ================= */
+const jsTooltip = document.getElementById('jsTooltip');
+function showTooltip(target){
+  const text = target.getAttribute('data-tt'); if(!text) return;
+  jsTooltip.textContent = text; jsTooltip.classList.add('show');
+  const r = target.getBoundingClientRect(); const tw = jsTooltip.offsetWidth, th = jsTooltip.offsetHeight;
+  let left = Math.max(8, Math.min(r.left + r.width/2 - tw/2, window.innerWidth - tw - 8));
+  let top = r.top - th - 8; if(top < 4){ top = r.bottom + 8; }
+  jsTooltip.style.left = left+'px'; jsTooltip.style.top = top+'px';
+}
+function hideTooltip(){ jsTooltip.classList.remove('show'); }
+document.addEventListener('mouseover', function(e){ const t=e.target.closest('.tt'); if(t) showTooltip(t); });
+document.addEventListener('mouseout', function(e){ if(e.target.closest('.tt')) hideTooltip(); });
+document.addEventListener('focusin', function(e){ const t=e.target.closest('.tt'); if(t) showTooltip(t); });
+document.addEventListener('focusout', function(e){ if(e.target.closest('.tt')) hideTooltip(); });
+document.addEventListener('scroll', hideTooltip, true);
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.btn-copy'); if(!btn) return;
+  const table = document.getElementById(btn.dataset.copyTarget); if(!table) return;
+  const text = Array.from(table.querySelectorAll('tr')).map(function(tr){
+    return Array.from(tr.children).map(function(td){ return td.textContent.trim().replace(/\s+/g,' '); }).join('\t');
+  }).join('\n');
+  function done(){ btn.textContent='Copiado!'; setTimeout(function(){ btn.textContent='Copiar tabela'; }, 1400); }
+  if (navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).then(done).catch(fallback); } else fallback();
+  function fallback(){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(err){} document.body.removeChild(ta); done(); }
+});
+
+/* ================= RENDERIZAÇÃO: CABEÇALHO, CONTROLES ================= */
+function periodHeader(p, isRef){
+  const tags = (isRef ? '<span class="th-tag">REFERÊNCIA</span>' : '') + (p.status==='previsto' ? '<span class="th-tag prev">PREVISTO</span>' : '');
+  const sub = p.date ? 'pago em '+p.date : 'data não informada';
+  return '<th class="'+(isRef?'th-ref':'')+'">'+(tags?'<span style="display:block">'+tags+'</span>':'')+
+    MESES[p.month-1].toLowerCase().replace(/^./, function(c){ return c.toUpperCase(); })+'/'+p.year+'<span class="th-sub">'+sub+'</span></th>';
+}
+function renderTop(){
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.q===S.q); });
+  document.querySelectorAll('.seg button').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===S.mode); });
+  const prevs = ['1','2'].map(function(q){ return Q[q].valid.filter(function(p){ return p.status==='previsto'; }).map(function(p){ return q+'ª quinzena de '+p.long.toLowerCase(); }).join(', '); }).filter(Boolean);
+  document.getElementById('topRight').innerHTML = 'Fontes: planilhas comparativas de pagamento a fornecedores (1ª e 2ª quinzena)<br>Valores previstos: '+esc(prevs.join(' · '))+'<br>Hoje: '+TODAY.toLocaleDateString('pt-BR');
+  const refSel = document.getElementById('refSelect');
+  refSel.innerHTML = Q[S.q].valid.slice().sort(function(a,b){ return a.id<b.id?1:-1; }).map(function(p){
+    return '<option value="'+p.id+'"'+(p.id===S.ref[S.q]?' selected':'')+'>'+p.long+(p.status==='previsto'?' (previsto)':'')+'</option>';
+  }).join('');
+  const areaSel = document.getElementById('areaSelect');
+  const areaOpts = AREA_ORDER.filter(function(a){
+    if (!a.separated) return true;
+    return OPTIONAL_PROPRIO.some(function(o){ return o.area.key===a.key && !S.include[o.key]; });
+  });
+  if (!areaOpts.some(function(a){ return a.key===S.area; })) S.area = 'all';
+  areaSel.innerHTML = '<option value="all">Todas as áreas</option>' + areaOpts.map(function(a){ return '<option value="'+a.key+'"'+(S.area===a.key?' selected':'')+'>'+a.name+'</option>'; }).join('');
+  document.getElementById('hideZero').checked = S.hideZero;
+  document.getElementById('footerText').textContent = 'Relatório gerado a partir de '+Q['1'].file+' e '+Q['2'].file+'. Valores conforme as planilhas de origem.';
+}
+
+function renderPeriodControls(sel){
+  const cmpIds = sel.cmp.map(function(p){ return p.id; });
+  const chips = Q[S.q].valid.slice().sort(function(a,b){ return a.id<b.id?1:-1; }).map(function(p){
+    const isRef = p.id===sel.ref.id, on = cmpIds.indexOf(p.id)>=0;
+    const cls = 'm-chip'+(isRef?' ref':'')+(on?' active':'')+(p.status==='previsto'?' proj':'');
+    const tag = isRef ? '<span class="chip-tag">REF</span>' : (p.status==='previsto' ? '<span class="chip-tag">PREV</span>' : '');
+    return '<button type="button" class="'+cls+'" data-id="'+p.id+'"'+(isRef?' aria-disabled="true"':' aria-pressed="'+on+'"')+' title="'+esc(p.sourceHeader)+'">'+p.short+tag+'</button>';
+  }).join('');
+  document.getElementById('periodChips').innerHTML = chips;
+
+  const parts = ['<b>'+S.q+'ª quinzena de '+sel.ref.long.toLowerCase()+'</b> (referência'+(sel.ref.status==='previsto'?', previsto':'')+')'];
+  sel.cmp.forEach(function(p){ parts.push(p.long.toLowerCase()+(p.status==='previsto'?' (previsto)':'')); });
+  document.getElementById('includedText').innerHTML = 'Períodos incluídos na análise ('+sel.all.length+'): '+parts.join(' · ');
+}
+
+function renderOptToggles(){
+  document.getElementById('optToggles').innerHTML = OPTIONAL_PROPRIO.map(function(o){
+    const on = S.include[o.key];
+    return '<label class="opt-toggle'+(on?'':' off')+'"><input type="checkbox" data-opt="'+o.key+'"'+(on?' checked':'')+'> '+esc(o.name)+' <span class="code">'+o.codes.join(', ')+'</span></label>';
+  }).join('');
+}
+function renderNotices(sel){
+  const n = (S.q===AUTO.q && sel.ref.id===AUTO_REF) ? autoNotices.slice() : [];
+  const isDefault = !Array.isArray(S.cmp[cmpKey()]);
+  if (isDefault){
+    const d = defaultCompare(S.q, sel.ref.id);
+    if (d.missing.length) n.push({type:'info', text:'Comparação padrão (4 quinzenas anteriores): não há dados da '+S.q+'ª quinzena de '+d.missing.map(function(id){ return MESES[+id.slice(5)-1].toLowerCase()+'/'+id.slice(0,4); }).join(', ')+'. Esses meses foram deixados de fora — não aparecem como zero.'});
+  }
+  const off = OPTIONAL_PROPRIO.filter(function(o){ return !S.include[o.key]; }).map(function(o){ return o.name; });
+  if (off.length) n.push({type:'info', text:'<b>'+off.join(' e ')+'</b> '+(off.length>1?'não estão somadas':'não está somada')+' ao Recurso Próprio e '+(off.length>1?'aparecem separadas, cada uma como uma fonte de recurso':'aparece separada, como uma fonte de recurso')+'. O Recurso Próprio fica sem '+(off.length>1?'esses valores':'esse valor')+'; o total geral continua o mesmo.'});
+  if (!sel.cmp.length) n.push({type:'info', text:'Nenhuma quinzena selecionada para comparação. Escolha períodos acima ou use “Restaurar padrão”.'});
+  document.getElementById('topNotices').innerHTML = n.map(function(x){
+    return '<div class="notice notice-'+x.type+'"><span class="n-icon">'+(x.type==='warn'?'!':'i')+'</span><span>'+x.text+'</span></div>';
+  }).join('');
+}
+
+function renderKpis(sel, rows){
+  const series = seriesFor(rows, sel.all), st = stats(series, sel), cs = cmpState(st);
+  const refLabel = sel.ref.status==='previsto' ? 'TOTAL PREVISTO — ' : 'TOTAL PAGO — ';
+  const k = [];
+  k.push('<div class="kpi k-contrato"><div class="k-label">'+refLabel+S.q+'ª QUINZENA '+sel.ref.short.toUpperCase()+'</div><div class="k-value">'+fmtBRL(st.ref)+'</div><div class="k-sub">'+(sel.ref.date?'Data da planilha: '+sel.ref.date:'')+'</div></div>');
+  k.push('<div class="kpi"><div class="k-label">MÉDIA DAS QUINZENAS COMPARADAS</div><div class="k-value">'+fmtBRL(st.avg)+'</div><div class="k-sub">'+(sel.cmp.length? sel.cmp.length+' período(s): '+sel.cmp.map(function(p){return p.short;}).join(', ') : 'Nenhum período comparado')+'</div></div>');
+  k.push('<div class="kpi k-saldo"><div class="k-label">VARIAÇÃO × MÉDIA</div><div class="k-value '+(cs?(cs.cls==='cmp-over'?'over':'under'):'')+'">'+(cs?cs.icon+' ':'')+fmtBRL(st.dAvg)+'</div><div class="k-sub">'+fmtPct(st.pAvg,true)+' em relação à média</div></div>');
+  const dPrev = (st.ref!==null && st.prev!==null) ? st.ref-st.prev : null;
+  k.push('<div class="kpi k-despesa"><div class="k-label">VARIAÇÃO × QUINZENA ANTERIOR</div><div class="k-value '+(dPrev===null?'':(dPrev>EPS?'over':(dPrev<-EPS?'under':'')))+'">'+(dPrev===null?'—':(dPrev>EPS?'\u25B2 ':(dPrev<-EPS?'\u25BC ':''))+fmtBRL(dPrev))+'</div><div class="k-sub">'+(st.prevP? fmtPct(st.pPrev,true)+' frente a '+st.prevP.short : 'Sem quinzena anterior na seleção')+'</div></div>');
+  document.getElementById('kpiRow').innerHTML = k.join('');
+}
+
+/* ================= GRÁFICOS (SVG embutido, sem dependências) ================= */
+function renderCharts(sel, rows){
+  const chron = sel.all.slice().sort(function(a,b){ return a.id<b.id?-1:1; });
+  const fontes = FONTE_ORDER.filter(function(f){ return rows.some(function(r){ return r.fonte.key===f.key; }); });
+  const data = chron.map(function(p){
+    const parts = fontes.map(function(f){ return {f:f, v: Math.max(0, sumNullable(rows.filter(function(r){ return r.fonte.key===f.key; }).map(function(r){ return r.values[p.k]; }))||0)}; });
+    return {p:p, parts:parts, total: parts.reduce(function(a,b){ return a+b.v; },0)};
+  });
+  const W=640, H=290, padL=58, padR=12, padT=26, padB=44;
+  const max = Math.max.apply(null, data.map(function(d){ return d.total; }).concat([1]));
+  const step = niceStep(max/4), top = Math.ceil(max/step)*step;
+  const iw = W-padL-padR, ih = H-padT-padB, bw = Math.min(64, iw/Math.max(1,data.length)*0.56);
+  let svg = '<svg class="chart-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Total por quinzena e fonte de recurso">'+
+    '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="transparent"/><line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.55)" stroke-width="2.2"/></pattern></defs>';
+  for (let v=0; v<=top+1; v+=step){
+    const y = padT+ih-(v/top)*ih;
+    svg += '<line class="grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(padL-6)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="10">'+fmtShort(v)+'</text>';
+  }
+  data.forEach(function(d, i){
+    const cx = padL + iw*(i+0.5)/data.length, x = cx-bw/2; let y = padT+ih;
+    const isRef = d.p.id===sel.ref.id;
+    d.parts.forEach(function(pt){
+      if (pt.v<=0) return; const h = pt.v/top*ih; y -= h;
+      svg += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" style="fill:'+pt.f.color+'"><title>'+esc(pt.f.name+' — '+d.p.long+': R$ '+fmtBRL(pt.v))+'</title></rect>';
+      if (d.p.status==='previsto') svg += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" fill="url(#hatch)" pointer-events="none"/>';
+    });
+    const hT = d.total/top*ih;
+    if (isRef) svg += '<rect x="'+(x-3)+'" y="'+(padT+ih-hT-3)+'" width="'+(bw+6)+'" height="'+(hT+3)+'" fill="none" style="stroke:var(--ink)" stroke-width="1.6" stroke-dasharray="'+(d.p.status==='previsto'?'4 3':'0')+'"/>';
+    svg += '<text class="val" x="'+cx+'" y="'+(padT+ih-hT-7)+'" text-anchor="middle" font-size="10">'+fmtShort(d.total)+'</text>';
+    svg += '<text x="'+cx+'" y="'+(H-padB+16)+'" text-anchor="middle" font-size="11" font-weight="'+(isRef?'700':'500')+'">'+d.p.short+'</text>';
+    svg += '<text x="'+cx+'" y="'+(H-padB+30)+'" text-anchor="middle" font-size="9.5">'+(isRef?'referência':(d.p.status==='previsto'?'previsto':''))+'</text>';
+  });
+  svg += '</svg>';
+  const legend = '<div class="chart-legend">'+fontes.map(function(f){ return '<span><span class="dot" style="background:'+f.color+'"></span>'+f.name+'</span>'; }).join('')+'</div>';
+  document.getElementById('chartPeriods').innerHTML = data.length ? svg+legend : '<div class="empty">Nenhum período selecionado.</div>';
+
+  // Áreas: referência × média
+  const areas = AREA_ORDER.map(function(a){
+    const ar = rows.filter(function(r){ return r.area.key===a.key; });
+    if (!ar.length) return null;
+    return {a:a, st: stats(seriesFor(ar, sel.all), sel)};
+  }).filter(Boolean);
+  const amax = Math.max.apply(null, areas.map(function(x){ return Math.max(x.st.ref||0, x.st.avg||0); }).concat([1]));
+  const AW=420, rowH=52, AH = areas.length*rowH+8, lx=8, bx=8, bwMax=AW-120;
+  let s2 = '<svg class="chart-svg" viewBox="0 0 '+AW+' '+AH+'" role="img" aria-label="Referência e média por área">';
+  areas.forEach(function(x, i){
+    const y0 = i*rowH+6, cs = cmpState(x.st);
+    s2 += '<text x="'+lx+'" y="'+(y0+10)+'" font-size="11" font-weight="700" style="fill:var(--ink)">'+esc(x.a.name)+'</text>';
+    const wr = (x.st.ref||0)/amax*bwMax, wa = (x.st.avg||0)/amax*bwMax;
+    s2 += '<rect x="'+bx+'" y="'+(y0+16)+'" width="'+Math.max(0,wr)+'" height="12" rx="2" style="fill:var(--contrato)"/>';
+    s2 += '<text class="val" x="'+(bx+Math.max(0,wr)+6)+'" y="'+(y0+26)+'" font-size="10">'+fmtShort(x.st.ref||0)+(cs?' '+cs.icon:'')+'</text>';
+    s2 += '<rect x="'+bx+'" y="'+(y0+31)+'" width="'+Math.max(0,wa)+'" height="9" rx="2" style="fill:var(--contrato-soft);stroke:var(--contrato)" stroke-width="0.6"/>';
+    s2 += '<text x="'+(bx+Math.max(0,wa)+6)+'" y="'+(y0+39.5)+'" font-size="9.5">média '+(x.st.avg===null?'—':fmtShort(x.st.avg))+'</text>';
+  });
+  s2 += '</svg>';
+  document.getElementById('chartAreas').innerHTML = areas.length ? s2 : '<div class="empty">Sem vínculos para os filtros escolhidos.</div>';
+}
+function niceStep(x){ if (x<=0) return 1; const p=Math.pow(10, Math.floor(Math.log10(x))); const f=x/p; return (f<=1?1:f<=2?2:f<=5?5:10)*p; }
+
+/* ================= TABELAS ================= */
+function valueCells(series, sel, opts){
+  opts = opts || {};
+  const st = stats(series, sel), cs = cmpState(st);
+  let h = '';
+  sel.all.forEach(function(p, i){
+    const v = series[p.id];
+    if (i===0){
+      if (cs) h += '<td class="td-ref '+cs.cls+'"><span class="tt" tabindex="0" data-tt="'+esc(cs.tip)+'"><span class="cmp-ic" aria-hidden="true">'+cs.icon+'</span>'+fmtBRL(v)+'</span></td>';
+      else h += '<td class="td-ref">'+(v===null && opts.nullTip ? '<span class="tt" tabindex="0" data-tt="Sem valor na planilha de origem">—</span>' : fmtBRL(v))+'</td>';
+    } else {
+      h += '<td'+(v===null?' class="dash"':'')+'>'+(v===null?'<span class="tt" tabindex="0" data-tt="Vínculo sem valor nesta coluna da planilha de origem (não é zero)">—</span>':fmtBRL(v))+'</td>';
+    }
+  });
+  h += '<td>'+fmtBRL(st.avg)+'</td>';
+  h += '<td class="'+(st.dAvg===null||Math.abs(st.dAvg)<EPS?'':(st.dAvg>0?'pct-pos':'pct-neg'))+'">'+fmtBRL(st.dAvg)+'</td>';
+  h += '<td class="'+(st.pAvg===null||Math.abs(st.pAvg)<1e-9?'':(st.pAvg>0?'pct-pos':'pct-neg'))+'">'+fmtPct(st.pAvg,true)+'</td>';
+  h += '<td class="'+(st.pPrev===null||Math.abs(st.pPrev)<1e-9?'':(st.pPrev>0?'pct-pos':'pct-neg'))+'">'+fmtPct(st.pPrev,true)+'</td>';
+  return h;
+}
+function tableHead(sel, firstCol){
+  const prevP = sel.cmp.filter(function(p){ return p.id < sel.ref.id; })[0];
+  return '<thead><tr><th class="text-col">'+firstCol+'</th>'+sel.all.map(function(p,i){ return periodHeader(p, i===0); }).join('')+
+    '<th class="th-calc"><span class="tt" tabindex="0" data-tt="Média das quinzenas escolhidas para comparação, sem contar a referência.">Média das comparadas</span><span class="th-sub">'+sel.cmp.length+' quinzena(s)</span></th>'+
+    '<th class="th-calc"><span class="tt" tabindex="0" data-tt="Valor da referência menos a média das comparadas.">Diferença em R$</span><span class="th-sub">referência − média</span></th>'+
+    '<th class="th-calc"><span class="tt" tabindex="0" data-tt="Quanto a referência ficou acima (+) ou abaixo (−) da média, em percentual.">Diferença em %</span><span class="th-sub">referência × média</span></th>'+
+    '<th class="th-calc"><span class="tt" tabindex="0" data-tt="Variação percentual da referência em relação à quinzena imediatamente anterior que está na comparação.">Variação em %</span><span class="th-sub">'+(prevP?'vs '+MESES[prevP.month-1].toLowerCase()+'/'+prevP.year:'sem anterior')+'</span></th></tr></thead>';
+}
+function gmStrip(series, sel){
+  const st = stats(series, sel), cs = cmpState(st);
+  return '<div class="grp-months">'+sel.all.map(function(p, i){
+    const v = series[p.id];
+    if (i===0) return '<div class="gm gm-ref"><span class="gm-label">REF '+p.short.toUpperCase()+'</span><span class="gm-real '+(cs?cs.cls:'')+'"'+(cs?' title="'+esc(cs.tip)+'"':'')+'>'+(cs?'<span class="cmp-ic">'+cs.icon+'</span>':'')+fmtBRL(v)+'</span></div>';
+    return '<div class="gm"><span class="gm-label">'+p.short.toUpperCase()+'</span><span class="gm-prev">'+fmtBRL(v)+'</span></div>';
+  }).join('')+'</div>';
+}
+function rowLabel(r){
+  let tip = 'Fonte: '+r.fonte.name+' \u203A Área: '+r.area.name+' \u203A '+(r.sheetRows.length>1?'Linhas '+r.sheetRows.join(' e '):'Linha '+r.sheetRow)+' da planilha ('+r.sheetGroup+')';
+  let badge = '';
+  if (r.merged){ badge += '<span class="status-pill prev">UNIFICADO</span>'; tip += ' · Vínculo que aparecia em '+r.sheetRows.length+' linhas da planilha; os valores de cada quinzena foram somados em uma única linha.'; }
+  if (r.fonte.key==='nao-identificada') badge += '<span class="status-pill unk">REVISAR</span>';
+  return '<span class="tt" tabindex="0" data-tt="'+esc(tip)+'">'+esc(r.label)+'</span>'+badge;
+}
+
+function renderDetailed(sel, rows){
+  const tree = buildTree(rows);
+  const el = document.getElementById('content');
+  if (!tree.length){ el.innerHTML = '<div class="card empty">Nenhum vínculo atende aos filtros. Ajuste a área ou a busca.</div>'; return 0; }
+  let hidden = 0, html = '';
+  tree.forEach(function(node, gi){
+    const fSeries = seriesFor(node.rows, sel.all);
+    const tid = 'tblFonte'+gi;
+    let body = '';
+    node.areas.forEach(function(a){
+      const aSeries = seriesFor(a.rows, sel.all);
+      const vis = a.rows.filter(function(r){ const z = S.hideZero && isZeroRow(r, sel); if (z) hidden++; return !z; });
+      body += '<tr class="area-row"><td class="text-col">'+esc(a.area.name)+' <span class="grp-count">('+a.rows.length+' vínculo'+(a.rows.length>1?'s':'')+')</span></td>'+valueCells(aSeries, sel)+'</tr>';
+      vis.forEach(function(r){
+        const s = {}; sel.all.forEach(function(p){ s[p.id] = r.values[p.k]; });
+        body += '<tr class="item-row"><td class="text-col">'+rowLabel(r)+'</td>'+valueCells(s, sel, {nullTip:true})+'</tr>';
+      });
+    });
+    body += '<tr class="total-row"><td class="text-col">Total — '+esc(node.fonte.name)+'</td>'+valueCells(fSeries, sel)+'</tr>';
+    const key = S.q+'|'+node.fonte.key, open = S.open[key]!==undefined ? S.open[key] : gi===0;
+    html += '<details class="group-acc'+(node.fonte.separated?' sep-fonte':'')+'" data-key="'+key+'"'+(open?' open':'')+'><summary>'+
+      '<div class="grp-left"><span class="chev"></span><div><div class="grp-name">'+esc(node.fonte.name)+'</div>'+
+      '<div class="grp-count">'+(node.fonte.separated?'Separado do Recurso Próprio · ':'')+node.rows.length+' vínculo(s) · '+node.areas.map(function(a){ return a.area.name; }).join(', ')+'</div></div></div>'+
+      gmStrip(fSeries, sel)+'</summary>'+
+      '<div class="acc-body"><div class="tbl-title-row"><span class="ttl">Fonte de recurso \u203A área de aplicação \u203A vínculo — '+esc(node.fonte.name)+'</span>'+
+      '<button class="btn btn-copy" data-copy-target="'+tid+'">Copiar tabela</button></div>'+
+      '<div class="table-scroll"><table class="grouptbl" id="'+tid+'">'+tableHead(sel,'Área / vínculo')+'<tbody>'+body+'</tbody></table></div></div></details>';
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('details.group-acc').forEach(function(d){
+    d.addEventListener('toggle', function(){ S.open[d.dataset.key] = d.open; savePrefs(); });
+  });
+  return hidden;
+}
+
+function renderSynthetic(sel, rows){
+  const tree = buildTree(rows);
+  const el = document.getElementById('content');
+  if (!tree.length){ el.innerHTML = '<div class="card empty">Nenhum vínculo atende aos filtros. Ajuste a área ou a busca.</div>'; return 0; }
+  let b1 = '';
+  tree.forEach(function(node){
+    b1 += '<tr class="fonte-row'+(node.fonte.separated?' sep':'')+'"><td class="text-col">'+esc(node.fonte.name)+(node.fonte.separated?' <span class="status-pill prev">SEPARADO DO PRÓPRIO</span>':'')+'</td>'+valueCells(seriesFor(node.rows, sel.all), sel)+'</tr>';
+    node.areas.forEach(function(a){
+      b1 += '<tr class="sin-area"><td class="text-col">'+esc(a.area.name)+' <span class="grp-count">('+a.rows.length+')</span></td>'+valueCells(seriesFor(a.rows, sel.all), sel)+'</tr>';
+    });
+  });
+  b1 += '<tr class="total-row"><td class="text-col">Total geral</td>'+valueCells(seriesFor(rows, sel.all), sel)+'</tr>';
+  let b2 = '';
+  AREA_ORDER.forEach(function(a){
+    const ar = rows.filter(function(r){ return r.area.key===a.key; }); if (!ar.length) return;
+    const fs = FONTE_ORDER.filter(function(f){ return ar.some(function(r){ return r.fonte.key===f.key; }); }).map(function(f){ return f.name; }).join(', ');
+    b2 += '<tr><td class="text-col"><span class="tt" tabindex="0" data-tt="'+esc('Inclui: '+fs)+'">'+esc(a.name)+'</span></td>'+valueCells(seriesFor(ar, sel.all), sel)+'</tr>';
+  });
+  b2 += '<tr class="total-row"><td class="text-col">Total geral</td>'+valueCells(seriesFor(rows, sel.all), sel)+'</tr>';
+  el.innerHTML =
+    '<div class="card"><div class="tbl-title-row"><div><h3>Por fonte de recurso e área de aplicação</h3><div class="card-desc" style="margin:0">Totais sem o detalhamento dos vínculos. Cada área aparece dentro da fonte de origem.</div></div>'+
+    '<button class="btn btn-copy" data-copy-target="tblSin1">Copiar tabela</button></div>'+
+    '<div class="table-scroll"><table class="grouptbl" id="tblSin1">'+tableHead(sel,'Fonte / área')+'<tbody>'+b1+'</tbody></table></div></div>'+
+    '<div class="card"><div class="tbl-title-row"><div><h3>Consolidado por área de aplicação</h3><div class="card-desc" style="margin:0">Soma das áreas em todas as fontes de recurso. Passe o mouse sobre a área para ver quais fontes estão incluídas.</div></div>'+
+    '<button class="btn btn-copy" data-copy-target="tblSin2">Copiar tabela</button></div>'+
+    '<div class="table-scroll"><table class="grouptbl" id="tblSin2">'+tableHead(sel,'Área de aplicação')+'<tbody>'+b2+'</tbody></table></div></div>';
+  return 0;
+}
+
+function renderTotals(sel, rows){
+  const st = stats(seriesFor(rows, sel.all), sel);
+  const filt = (S.area!=='all' || S.search.trim()) ? ' (FILTRADO)' : '';
+  document.getElementById('totalsStrip').innerHTML =
+    '<div class="grand-total-bar"><div class="gt-label">TOTAL — '+S.q+'ª QUINZENA DE '+sel.ref.long.toUpperCase()+(sel.ref.status==='previsto'?' (PREVISTO)':'')+filt+'</div>'+
+    '<div class="gt-values">'+
+      '<div class="gtv"><span class="gtv-label">REFERÊNCIA</span><span class="gtv-value">'+fmtBRL(st.ref)+'</span></div>'+
+      '<div class="gtv"><span class="gtv-label">MÉDIA COMPARADA</span><span class="gtv-value">'+fmtBRL(st.avg)+'</span></div>'+
+      '<div class="gtv"><span class="gtv-label">VARIAÇÃO</span><span class="gtv-value">'+fmtBRL(st.dAvg)+' ('+fmtPct(st.pAvg,true)+')</span></div>'+
+    '</div></div>';
+}
+
+/* ================= IMPRESSÃO ================= */
+function renderPrintSummary(sel){
+  const areaName = S.area==='all' ? 'todas' : (AREA_ORDER.filter(function(a){ return a.key===S.area; })[0]||{name:S.area}).name;
+  const opts = OPTIONAL_PROPRIO.map(function(o){ return o.name+': '+(S.include[o.key]?'somada ao Recurso Próprio':'separada'); }).join(' · ');
+  const now = new Date();
+  document.getElementById('printSummary').innerHTML =
+    '<b>'+S.q+'ª quinzena · referência: '+sel.ref.long.toLowerCase()+(sel.ref.status==='previsto'?' (previsto)':'')+'</b>'+
+    ' · comparada com: '+(sel.cmp.length ? sel.cmp.map(function(p){ return p.long.toLowerCase()+(p.status==='previsto'?' (previsto)':''); }).join(', ') : 'nenhuma quinzena')+'<br>'+
+    'Visualização: '+(S.mode==='det'?'detalhada':'sintética')+' · Área: '+esc(areaName)+(S.search.trim()?' · Busca: “'+esc(S.search.trim())+'”':'')+
+    (S.mode==='det' ? ' · Vínculos sem pagamento: '+(S.hideZero?'ocultos':'exibidos') : '')+' · '+esc(opts)+
+    ' · Impresso em '+now.toLocaleDateString('pt-BR')+' '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+// O navegador não divide um <details> entre páginas de forma confiável (empurra o grupo inteiro
+// para a página seguinte e deixa espaço em branco). Na impressão usamos uma cópia em blocos simples.
+let printPrepared = false;
+function preparePrint(){
+  if (printPrepared) return;
+  printPrepared = true;
+  renderPrintSummary(selectedPeriods());
+  const src = document.getElementById('content'), dst = document.getElementById('printContent');
+  const clone = src.cloneNode(true);
+  clone.querySelectorAll('details').forEach(function(d){
+    const box = document.createElement('div');
+    box.className = d.className + ' print-group';
+    const sum = d.querySelector('summary');
+    if (sum){
+      const head = document.createElement('div');
+      head.className = 'print-group-head';
+      const nm = sum.querySelector('.grp-name'), ct = sum.querySelector('.grp-count');
+      head.innerHTML = (nm?'<span class="grp-name">'+nm.innerHTML+'</span>':'')+(ct?'<span class="grp-count">'+ct.innerHTML+'</span>':'');
+      box.appendChild(head);
+      sum.remove();
+    }
+    while (d.firstChild) box.appendChild(d.firstChild);
+    d.replaceWith(box);
+  });
+  clone.querySelectorAll('[id]').forEach(function(el){ el.removeAttribute('id'); });
+  dst.innerHTML = ''; while (clone.firstChild) dst.appendChild(clone.firstChild);
+}
+function cleanupPrint(){ printPrepared = false; document.getElementById('printContent').innerHTML = ''; }
+window.addEventListener('beforeprint', preparePrint);
+window.addEventListener('afterprint', cleanupPrint);
+document.getElementById('btnPrint').addEventListener('click', function(){ preparePrint(); window.print(); });
+
+/* ================= CICLO DE RENDERIZAÇÃO ================= */
+function render(){
+  const sel = selectedPeriods();
+  document.getElementById('panelTitle').textContent = 'Pagamentos a fornecedores — '+S.q+'ª quinzena';
+  document.getElementById('panelDesc').textContent = 'Compara a '+S.q+'ª quinzena do mês de referência apenas com as '+S.q+'ªs quinzenas de outros meses. Valores agrupados por fonte de recurso (1º grupo do vínculo) e área de aplicação (2º grupo).';
+  renderTop();
+  const rows = filteredRows();
+  renderPeriodControls(sel);
+  renderOptToggles();
+  renderNotices(sel);
+  renderKpis(sel, rows);
+  renderCharts(sel, rows);
+  document.getElementById('cmpLegend').innerHTML = '<div class="cmp-legend"><span>Quinzena de referência × média das comparadas:</span>'+
+    '<span class="sw over"><span class="cmp-ic">\u25B2</span>Acima da média</span><span class="sw under"><span class="cmp-ic">\u25BC</span>Abaixo da média</span>'+
+    '<span>“—” indica ausência de valor na planilha, não zero.</span></div>';
+  const hidden = S.mode==='det' ? renderDetailed(sel, rows) : renderSynthetic(sel, rows);
+  document.getElementById('hiddenNote').textContent = (S.mode==='det' && S.hideZero && hidden) ? hidden+' vínculo(s) sem pagamento em nenhum dos períodos selecionados estão ocultos. Os totais continuam considerando todos.' : '';
+  renderTotals(sel, rows);
+  renderPrintSummary(sel);
+  savePrefs();
+}
+
+/* ================= EVENTOS ================= */
+document.querySelectorAll('.tab-btn').forEach(function(b){ b.addEventListener('click', function(){ S.q = b.dataset.q; render(); }); });
+document.querySelectorAll('.seg button').forEach(function(b){ b.addEventListener('click', function(){ S.mode = b.dataset.mode; render(); }); });
+document.getElementById('refSelect').addEventListener('change', function(e){ S.ref[S.q] = e.target.value; render(); });
+document.getElementById('areaSelect').addEventListener('change', function(e){ S.area = e.target.value; render(); });
+document.getElementById('hideZero').addEventListener('change', function(e){ S.hideZero = e.target.checked; render(); });
+let searchT; document.getElementById('searchInput').addEventListener('input', function(e){ clearTimeout(searchT); searchT = setTimeout(function(){ S.search = e.target.value; render(); }, 160); });
+document.getElementById('periodChips').addEventListener('click', function(e){
+  const c = e.target.closest('.m-chip'); if (!c || c.classList.contains('ref')) return;
+  const ids = currentCompare(), id = c.dataset.id, i = ids.indexOf(id);
+  if (i>=0) ids.splice(i,1); else ids.push(id);
+  S.cmp[cmpKey()] = ids; render();
+});
+document.getElementById('optToggles').addEventListener('change', function(e){
+  const k = e.target.dataset.opt; if (!k) return; S.include[k] = e.target.checked; render();
+});
+document.getElementById('btnDefault').addEventListener('click', function(){ delete S.cmp[cmpKey()]; render(); });
+document.getElementById('btnAll').addEventListener('click', function(){ S.cmp[cmpKey()] = Q[S.q].valid.map(function(p){ return p.id; }).filter(function(id){ return id!==S.ref[S.q]; }); render(); });
+document.getElementById('btnNone').addEventListener('click', function(){ S.cmp[cmpKey()] = []; render(); });
+
+render();
+})();
+</script>
+</body>
+</html>
