@@ -380,6 +380,7 @@ tbody tr.sin-area td:first-child{ padding-left:26px; }
 td.pct-pos{ color:var(--over-ink); }
 td.pct-neg{ color:var(--under-ink); }
 .grid-2{ display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; }
+@media print{ .print-charts.grid-2{ grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) !important; } }
 @media (max-width:960px){ .grid-2{ grid-template-columns:1fr; } }
 .chart-svg{ width:100%; height:auto; display:block; }
 .chart-svg text{ font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; fill:var(--ink-soft); }
@@ -426,46 +427,60 @@ tbody tr.fonte-row.sep td{ background:var(--gold-soft) !important; }
 #includedText{ display:none; }
 
 /* ---------- impressão ---------- */
-@page{ size:A4 landscape; margin:9mm 8mm 10mm; }
+@page{ size:A4 landscape; margin:8mm 8mm 9mm; }
 @media print{
   html, body{ background:#fff !important; background-image:none !important; font-size:10.5px; }
   *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; box-shadow:none !important; animation:none !important; }
   .no-print, nav.tabs, .btn, .btn-copy, #jsTooltip, footer.site, .cmp-legend > span:last-child{ display:none !important; }
   .print-only{ display:block !important; }
-  header.top{ padding:8px 12px; }
+  header.top{ padding:6px 12px; }
   header.top::after{ display:none; }
-  .top-left h1{ font-size:16px; }
-  .top-left .subtitle, .top-right{ font-size:10px; }
-  main{ padding:8px 0 0; max-width:none; }
-  .panel-head{ margin-bottom:6px; }
-  .panel-head h2{ font-size:15px; }
+  .top-left h1{ font-size:15px; }
+  .top-left .subtitle, .top-right{ font-size:9.5px; }
+  main{ padding:6px 0 0; max-width:none; }
+  .panel-head{ margin-bottom:4px; }
+  .panel-head h2{ font-size:14px; }
   .panel-head p{ display:none; }
-  #printSummary{ border:1px solid var(--line-strong); border-radius:6px; padding:6px 10px; margin-bottom:8px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:10px; color:#333; line-height:1.5; }
+  #printSummary{ border:1px solid var(--line-strong); border-radius:6px; padding:5px 10px; margin-bottom:6px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:9.5px; color:#333; line-height:1.4; break-inside:avoid; }
   #printSummary b{ color:#000; }
-  .kpi-row{ grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px; break-inside:avoid; }
-  .kpi{ padding:6px 9px; }
-  .kpi .k-label{ font-size:8.5px; }
-  .kpi .k-value{ font-size:14px; margin-top:2px; }
-  .kpi .k-sub{ font-size:8.5px; }
-  .cmp-legend{ font-size:9px; margin-bottom:6px; gap:8px; }
-  .card{ padding:8px 10px; margin-bottom:8px; border-color:#ccc; }
-  .card h3{ font-size:12px; margin-bottom:2px; }
+  .kpi-row{ grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:6px; break-inside:avoid; page-break-inside:avoid; }
+  .kpi{ padding:5px 9px; }
+  .kpi .k-label{ font-size:8px; }
+  .kpi .k-value{ font-size:13px; margin-top:1px; }
+  .kpi .k-sub{ font-size:8px; }
+
+  /* Gráficos: entram na impressão, compactos, lado a lado, sem quebrar no meio */
+  .print-charts{ display:grid; gap:8px; margin-bottom:6px; break-inside:avoid; page-break-inside:avoid; }
+  .print-charts .card{ break-inside:avoid; page-break-inside:avoid; }
+  .print-charts .chart-svg{ max-height:195px; width:100%; }
+  .print-charts .chart-legend{ font-size:7.6px; gap:7px; margin-top:3px; }
+  .print-charts .empty{ padding:8px; font-size:9px; }
+
+  .cmp-legend{ font-size:8.5px; margin-bottom:5px; gap:7px; break-inside:avoid; }
+  .card{ padding:6px 9px; margin-bottom:6px; border-color:#ccc; }
+  .card h3{ font-size:11px; margin-bottom:2px; }
   .card .card-desc{ display:none; }
-  .tbl-title-row{ margin-bottom:4px; }
-  details.group-acc{ border:none; border-radius:0; margin-bottom:8px; overflow:visible; break-inside:auto; }
-  details.group-acc summary{ padding:4px 0; break-after:avoid; page-break-after:avoid; }
+  .tbl-title-row{ margin-bottom:3px; }
+  details.group-acc{ border:none; border-radius:0; margin-bottom:7px; overflow:visible; }
+  details.group-acc summary{ padding:3px 0; }
   details.group-acc summary .chev, details.group-acc summary .grp-months{ display:none; }
-  details.group-acc summary .grp-name{ font-size:12.5px; }
+  details.group-acc summary .grp-name{ font-size:12px; }
   details.group-acc .acc-body{ border-top:none; padding:0; }
   details.group-acc .acc-body .tbl-title-row{ display:none; }
   details.group-acc.sep-fonte{ border-left:3px solid var(--gold); padding-left:6px; }
   .table-scroll{ overflow:visible !important; border:1px solid #ccc; border-radius:4px; }
-  table{ min-width:0 !important; width:100%; font-size:8.6px; table-layout:auto; }
-  table.grouptbl thead th{ font-size:8.6px; padding:4px 5px; }
-  thead th .th-sub{ font-size:7.6px; margin-top:1px; }
-  thead th .th-tag{ font-size:7px; padding:0 4px; margin-bottom:2px; }
+  table{ min-width:0 !important; width:100%; font-size:8.3px; table-layout:auto; }
+
+  /* Cabeçalho da tabela bem mais enxuto (1 linha): é o maior responsável por sobrar
+     espaço em branco no fim da página, porque o navegador só inicia uma tabela numa
+     página se couber o cabeçalho inteiro + pelo menos 1 linha de dados. */
+  table.grouptbl thead th{ font-size:7px; padding:2px 4px; line-height:1.25; }
+  table.grouptbl thead th.th-ref{ font-size:7px; }
+  thead th span[style]{ display:inline !important; margin-right:3px; }
+  thead th .th-tag{ display:inline-block !important; font-size:5.3px; padding:0 3px; margin:0 2px 0 0; line-height:1.4; vertical-align:1px; border-radius:4px; }
+  thead th .th-sub{ display:none !important; }
   thead{ display:table-header-group; }
-  tbody td{ padding:3px 5px; }
+  tbody td{ padding:2.5px 5px; }
   table.grouptbl td:first-child, table.grouptbl th:first-child{ position:static !important; box-shadow:none !important; white-space:normal; max-width:230px; }
   tr{ break-inside:avoid; page-break-inside:avoid; }
   tr.area-row, tr.fonte-row{ break-after:avoid; page-break-after:avoid; }
@@ -473,21 +488,29 @@ tbody tr.fonte-row.sep td{ background:var(--gold-soft) !important; }
   .tt{ border-bottom:none; }
   .status-pill{ font-size:7px; padding:1px 4px; }
   .hidden-note{ font-size:9px; margin:2px 0 6px; }
-  .grand-total-bar{ padding:7px 12px; break-inside:avoid; page-break-inside:avoid; }
-  .grand-total-bar .gt-label{ font-size:11px; }
-  .grand-total-bar .gt-values .gtv .gtv-value{ font-size:12px; }
+  .grand-total-bar{ padding:6px 12px; break-inside:avoid; page-break-inside:avoid; }
+  .grand-total-bar .gt-label{ font-size:10.5px; }
+  .grand-total-bar .gt-values .gtv .gtv-value{ font-size:11.5px; }
   #content{ display:none !important; }
   #printContent > .card{ break-inside:auto; }
-  .print-group{ margin-bottom:10px; }
-  .print-group-head{ display:flex; align-items:baseline; gap:10px; padding:2px 0 4px; break-after:avoid; page-break-after:avoid; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
-  .print-group-head .grp-name{ font-weight:700; font-size:12.5px; color:var(--ink); }
-  .print-group-head .grp-count{ font-size:9.5px; color:var(--ink-faint); font-weight:600; }
+  .print-group{ margin-bottom:9px; }
+  /* Título do grupo preso ao início da tabela: se não couber o conjunto inteiro no
+     fim da página, o grupo todo (título + tabela) desce para a página seguinte em
+     vez de deixar o título sozinho com um vão em branco embaixo dele. */
+  .print-group-head{ display:flex; align-items:baseline; gap:10px; padding:2px 0 3px; break-after:avoid; page-break-after:avoid; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+  .print-group-head .grp-name{ font-weight:700; font-size:12px; color:var(--ink); }
+  .print-group-head .grp-count{ font-size:9px; color:var(--ink-faint); font-weight:600; }
   .print-group .acc-body{ padding:0; border:none; }
-  tbody tr.area-row td:first-child, tbody tr.fonte-row td:first-child{ font-size:9.6px; }
+  tbody tr.area-row td:first-child, tbody tr.fonte-row td:first-child{ font-size:9.3px; }
   tbody tr.item-row td:first-child{ padding-left:14px; }
-  tbody td .grp-count{ font-size:8.5px; }
+  tbody td .grp-count{ font-size:8.2px; }
   .print-group .acc-body .tbl-title-row{ display:none; }
   .print-group.sep-fonte{ border-left:3px solid var(--gold); padding-left:6px; }
+
+  /* A caixa "por que variou" usa position:sticky na tela (para acompanhar a rolagem
+     lateral); impresso isso pode travar a quebra de página do mesmo jeito que a
+     1ª coluna fixa das tabelas, então também volta a position:static. */
+  .exp-box{ position:static !important; max-width:none !important; }
 }
 /* ---------- aba Fornecedores ---------- */
 .sup-link{ appearance:none; background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
@@ -518,6 +541,7 @@ tbody tr.exp-row td{ padding:0 !important; background:var(--paper) !important; }
 @media print{ .exp-box{ padding:6px 10px 6px 20px; font-size:9px; } .exp-head{ font-size:9.5px; } .liq-chip{ font-size:8px; } }
 [hidden]{ display:none !important; }
 .grid-2.grid-even{ grid-template-columns:1fr 1fr; }
+@media print{ .print-charts.grid-even{ grid-template-columns:1fr 1fr !important; } }
 @media (max-width:960px){ .grid-2.grid-even{ grid-template-columns:1fr; } }
 tbody tr.sec-row td{ background:var(--ink) !important; color:var(--paper); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; font-weight:700; letter-spacing:.02em; padding:9px 12px; }
 tbody tr.sec-row.sec-up td{ background:var(--over-ink) !important; color:#fff; }
@@ -606,7 +630,7 @@ td.part{ font-weight:700; color:var(--over-ink); }
     <div id="focusHead"></div>
     <div class="kpi-row" id="kpiRow"></div>
 
-    <div class="grid-2 no-print">
+    <div class="grid-2 print-charts">
       <div class="card">
         <h3 id="c1Title">Total pago por período e fonte de recurso</h3>
         <div class="card-desc" id="c1Desc">Períodos incluídos na análise, em ordem cronológica. O período de referência aparece contornado; valores previstos aparecem hachurados.</div>
