@@ -596,6 +596,23 @@ footer.site{ border-top:1px solid var(--line); margin-top:24px; color:var(--ink-
 .top-right{ margin-left:auto; }
 @media (max-width:640px){ .top-right{ margin-left:0; } .top-brand{ flex-direction:column; align-items:flex-start; gap:10px; } .ol-logo img{ height:44px; } }
 @media print{ header.top{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } .ol-logo img{ height:40px; } }
+/* cabeçalho compacto */
+header.top{ padding-top:calc(8px + env(safe-area-inset-top,0px)); padding-bottom:8px; }
+.top-inner{ align-items:center; gap:8px 20px; }
+.ol-logo{ padding:4px 10px; border-radius:10px; } .ol-logo img{ height:42px; }
+.top-brand{ gap:14px; }
+.top-left h1{ font-size:clamp(16px,1.8vw,20px); }
+.top-left .subtitle{ font-size:11.5px; margin-top:2px; }
+.top-right{ flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:4px 14px; max-width:640px; }
+.top-right .pos{ font-size:12.5px; }
+#hFile:not(:empty)::before{ content:"· "; }
+.hdr-user{ margin:0; gap:6px; } .sync{ margin:0; }
+.hdr-btns{ width:100%; display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; }
+.btn-hdr{ padding:4px 10px; font-size:11.5px; }
+.filter-strip{ padding-top:6px; padding-bottom:6px; }
+.fs-meta{ margin-top:4px; }
+@media (max-width:640px){ .top-right{ justify-content:flex-start; } .hdr-btns{ justify-content:flex-start; } .ol-logo img{ height:36px; } .top-brand{ flex-direction:row; align-items:center; } .top-left .subtitle{ display:none; } }
+@media print{ .ol-logo img{ height:36px; } }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
