@@ -3468,7 +3468,7 @@ HEAD[ABA.hist] = ['quando', 'por', 'acao', 'detalhe'];
 const TYPES = ['CC', 'DC', 'CB', 'DB', 'NC'];
 const STORE = window.__CBC_STORE;
 const $ = function (s) { return document.querySelector(s); };
-let TOKEN = null, TOKEN_EXP = 0, TC = null, PEND = null, SESSAO = null;
+let TOKEN = null, TOKEN_EXP = 0, TC = null, PEND = null, SESSAO = null, ESCOPO_OK = true, FORCAR = false;
 const GRID = {};          // aba -> {id, rows}
 const CFG = {};           // Config chave/valor em memória
 const WROTE = { meses: {}, rend: {}, conc: {} };   // assinaturas do que já está na planilha
@@ -3488,6 +3488,7 @@ function iniciarCliente() {
     callback: function (r) {
       const p = PEND; PEND = null;
       if (!r || r.error) { if (p) p.rej(r || { error: 'sem_resposta' }); return; }
+      try { ESCOPO_OK = window.google.accounts.oauth2.hasGrantedAllScopes ? !!window.google.accounts.oauth2.hasGrantedAllScopes(r, 'https://www.googleapis.com/auth/spreadsheets') : true; } catch (e) { ESCOPO_OK = true; }
       TOKEN = r.access_token; TOKEN_EXP = Date.now() + ((+r.expires_in || 3600) - 60) * 1000; if (p) p.res();
     },
     error_callback: function (e) { const p = PEND; PEND = null; if (p) p.rej(e || { error: 'popup' }); }
@@ -3686,7 +3687,8 @@ async function entrar() {
   const b = $('#btnEntrar'); b.disabled = true;
   try {
     loginMsg('Abrindo o login do Google…', true);
-    await pedirToken('');
+    ESCOPO_OK = true; await pedirToken(FORCAR ? 'consent' : ''); FORCAR = false;
+    if (!ESCOPO_OK) await pedirToken('consent');     // o usuário desmarcou a permissão das planilhas na primeira vez: pede de novo
     await userinfo();
     loginMsg('Olá, ' + esc(SESSAO.nome) + '. Conferindo a planilha…', true);
     await garantirAbas();
@@ -3712,7 +3714,10 @@ async function entrar() {
     ['click', 'keydown', 'mousemove', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { SESSAO.ativo = Date.now(); }, { passive: true }); });
     setInterval(function () { if (Date.now() - SESSAO.ativo > 30 * 60000) { flushNow().then(function () { location.reload(); }); } }, 30000);
   } catch (e) {
-    b.disabled = false; loginMsg('<b>Não foi possível entrar.</b> ' + esc(msgErro(e)));
+    b.disabled = false;
+    const escopo = !ESCOPO_OK || (e && e.status === 403 && /scope|insufficient/i.test(e.message || ''));
+    if (escopo) { loginMsg('<b>Falta autorizar o acesso às planilhas.</b> Clique em “Entrar com Google” e, na janela do Google, <b>marque a caixa das planilhas</b> (Ver, editar, criar e excluir planilhas) antes de continuar.'); FORCAR = true; }
+    else loginMsg('<b>Não foi possível entrar.</b> ' + esc(msgErro(e)));
   }
 }
 function boot() {
