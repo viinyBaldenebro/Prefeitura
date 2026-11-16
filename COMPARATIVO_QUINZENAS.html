@@ -572,7 +572,9 @@ td.part{ font-weight:700; color:var(--over-ink); }
 <body>
 
 <style>
-#login,#carregando,#erroLogin{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--paper);font-family:'Inter',system-ui,sans-serif;padding:24px;text-align:center;}
+#login,#carregando,#erroLogin,#semDados{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--paper);font-family:'Inter',system-ui,sans-serif;padding:24px;text-align:center;}
+#semDados h2{font-family:'Montserrat',Arial,sans-serif;color:var(--ink);font-size:20px;margin:0;}
+#semDados .erro-box.aviso{background:var(--gold-soft);border-color:var(--gold);color:#6B4F00;}
 #login img.login-logo{height:64px;}
 #login h2{font-family:'Montserrat',Arial,sans-serif;color:var(--ink);font-size:20px;margin:0;}
 #login p,#carregando p,#erroLogin p{color:var(--ink-soft);font-size:13.5px;max-width:420px;margin:0;}
@@ -600,6 +602,13 @@ td.part{ font-weight:700; color:var(--over-ink); }
 <div id="erroLogin" style="display:none">
   <div class="erro-box" id="erroTexto"></div>
   <button class="btn-google" id="btnTentarNovamente" type="button">Tentar novamente</button>
+</div>
+
+<div id="semDados" style="display:none">
+  <h2>Planilha ainda sem dados</h2>
+  <div class="erro-box aviso" id="semDadosTexto"></div>
+  <p>Importe as informações nas abas indicadas acima e clique em atualizar.</p>
+  <button class="btn-google" id="btnAtualizarDados" type="button">Já importei, atualizar</button>
 </div>
 
 <div id="userBadge"><span id="userEmail"></span><button id="btnSair" type="button">Sair</button></div>
@@ -722,7 +731,7 @@ let TOKEN = null, TOKEN_EXP = 0, CLIENTE_TOKEN = null, SESSAO = null, INATIV_TIM
 
 function $(id){ return document.getElementById(id); }
 function mostrar(tela){
-  ['login','carregando','erroLogin','app'].forEach(function(id){ $(id).style.display = (id===tela) ? (id==='app' ? 'block' : 'flex') : 'none'; });
+  ['login','carregando','erroLogin','semDados','app'].forEach(function(id){ $(id).style.display = (id===tela) ? (id==='app' ? 'block' : 'flex') : 'none'; });
 }
 function mostrarErro(msg){
   $('erroTexto').textContent = msg;
@@ -904,6 +913,12 @@ function buscarUsuarioEDados(){
     })
     .then(function(){ return lerAbas(); })
     .then(function(tabs){
+      const vazias = abasVazias(tabs);
+      if (vazias.length){
+        $('semDadosTexto').textContent = 'Sem dados em: '+vazias.join(', ')+'.\n\nImporte as planilhas de liquidação nessas abas (colunas conforme o modelo combinado) e clique em "Já importei, atualizar".';
+        mostrar('semDados');
+        return;
+      }
       const DATA = montarDados(tabs);
       mostrar('app');
       iniciarRelatorio(DATA);
@@ -911,6 +926,13 @@ function buscarUsuarioEDados(){
     .catch(function(e){
       mostrarErro('Não foi possível carregar os dados da planilha.\n\nDetalhe: '+e.message+(dicaParaErro(e) ? '\n\n'+dicaParaErro(e) : ''));
     });
+}
+
+function abasVazias(tabs){
+  return Object.keys(CABECALHOS).filter(function(n){
+    const linhas = tabs[n] || [];
+    return linhas.length < 2;
+  });
 }
 
 function agendarInatividade(){
@@ -930,6 +952,7 @@ function sair(){
 
 $('btnLogin').addEventListener('click', iniciarLogin);
 $('btnTentarNovamente').addEventListener('click', iniciarLogin);
+$('btnAtualizarDados').addEventListener('click', function(){ TOKEN ? buscarUsuarioEDados() : iniciarLogin(); });
 $('btnSair').addEventListener('click', sair);
 
 })();
