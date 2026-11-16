@@ -585,6 +585,32 @@ td.part{ font-weight:700; color:var(--over-ink); }
 #erroLogin .erro-box{background:var(--alert-soft);border:1px solid var(--alert);color:var(--alert);border-radius:8px;padding:14px 18px;font-size:13px;max-width:480px;text-align:left;white-space:pre-line;}
 #userBadge{position:fixed;top:10px;right:14px;z-index:999;background:rgba(0,0,0,0.55);color:#fff;font-size:11.5px;padding:6px 12px;border-radius:20px;display:none;align-items:center;gap:10px;font-family:'Inter',sans-serif;}
 #userBadge button{background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;font-size:11.5px;padding:0;font-family:'Inter',sans-serif;}
+dialog#dlgImport{border:none;border-radius:12px;padding:0;width:min(760px,92vw);max-height:88vh;box-shadow:0 20px 60px rgba(0,0,0,0.35);font-family:'Inter',system-ui,sans-serif;}
+dialog#dlgImport::backdrop{background:rgba(20,26,34,0.55);}
+.imp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:2;}
+.imp-head h3{font-family:'Montserrat',Arial,sans-serif;font-size:16px;color:var(--ink);margin:0;}
+.imp-fechar{background:none;border:none;font-size:22px;line-height:1;color:var(--ink-soft);cursor:pointer;}
+.imp-body{padding:18px 20px 22px;overflow:auto;max-height:calc(88vh - 58px);font-size:13px;color:var(--ink);}
+.imp-body h4{font-family:'Montserrat',Arial,sans-serif;font-size:13.5px;color:var(--azul-esc);margin:0 0 8px;}
+.imp-body p{color:var(--ink-soft);font-size:12.5px;line-height:1.5;margin:0 0 12px;}
+.imp-drop{border:2px dashed var(--line-strong);border-radius:10px;padding:28px 16px;text-align:center;color:var(--ink-soft);margin-bottom:14px;cursor:pointer;}
+.imp-drop.over{border-color:var(--contrato);background:var(--contrato-soft);}
+.imp-lista{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:4px;}
+.imp-lista li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;background:var(--paper-deep);border-radius:6px;font-size:12px;}
+.imp-tabela{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:14px;}
+.imp-tabela th,.imp-tabela td{border:1px solid var(--line);padding:5px 7px;text-align:left;}
+.imp-tabela th{background:var(--azul-esc);color:#fff;font-weight:600;}
+.imp-tabela td.n, .imp-tabela th.n{text-align:right;}
+.imp-map{display:grid;grid-template-columns:160px 1fr;gap:8px 12px;align-items:center;margin-bottom:10px;}
+.imp-map label{font-weight:600;color:var(--ink-soft);font-size:12px;}
+.imp-map select{font-family:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);color:var(--ink);}
+.imp-aviso{background:var(--alert-soft);border:1px solid var(--alert);color:var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;}
+.imp-ok{background:var(--under-bg);border:1px solid var(--under-ink);color:var(--under-ink);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;}
+.imp-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+.imp-acoes button{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border-radius:7px;cursor:pointer;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);}
+.imp-acoes button.primario{background:var(--contrato);color:#fff;border-color:var(--contrato);}
+.imp-acoes button:disabled{opacity:.5;cursor:not-allowed;}
+.imp-spinner{width:22px;height:22px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--contrato);animation:spin .8s linear infinite;margin:0 auto 10px;}
 </style>
 
 <div id="login">
@@ -607,11 +633,18 @@ td.part{ font-weight:700; color:var(--over-ink); }
 <div id="semDados" style="display:none">
   <h2>Planilha ainda sem dados</h2>
   <div class="erro-box aviso" id="semDadosTexto"></div>
-  <p>Importe as informações nas abas indicadas acima e clique em atualizar.</p>
-  <button class="btn-google" id="btnAtualizarDados" type="button">Já importei, atualizar</button>
+  <button class="btn-google" id="btnAbrirImportacao" type="button">Importar Dados</button>
 </div>
 
-<div id="userBadge"><span id="userEmail"></span><button id="btnSair" type="button">Sair</button></div>
+<div id="userBadge"><span id="userEmail"></span><button id="btnAbrirImportacao2" type="button">Importar dados</button><button id="btnSair" type="button">Sair</button></div>
+
+<dialog id="dlgImport">
+  <div class="imp-head">
+    <h3>Importar quinzenas</h3>
+    <button type="button" class="imp-fechar" id="btnFecharImport" aria-label="Fechar">×</button>
+  </div>
+  <div class="imp-body" id="impBody"></div>
+</dialog>
 
 <div id="app" style="display:none">
 
@@ -935,6 +968,384 @@ function abasVazias(tabs){
   });
 }
 
+/* ---------- Motor de importação das planilhas de quinzena ---------- */
+const ABA_HIST = 'Historico';
+const CAB_HIST = ['Quando','Por','Arquivos','Linhas'];
+let IMP_XLSX_PRONTO = false;
+let IMP_ARQUIVOS_BRUTOS = [];   // { nome, quinzena, periodId, data, ano, mes, workbook }
+let IMP_MAPA = null;            // { sheetDetalhe, sheetPivot, cabDetalheIdx, cabPivotIdx, detalhe:{...}, pivot:{...} }
+let IMP_PROCESSADOS = null;     // resultado da validação (passo 3)
+let IMP_EXISTENTES = null;      // Set 'periodId|quinzena' já presentes na planilha
+
+function esc(s){ return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtBRL(v){ return (Number(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function normalizar(s){ return String(s===null||s===undefined?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
+function carregarXLSX(){
+  if (IMP_XLSX_PRONTO) return Promise.resolve();
+  return carregarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js').then(function(){ IMP_XLSX_PRONTO = true; });
+}
+
+function abrirImportacao(){
+  $('dlgImport').showModal();
+  IMP_ARQUIVOS_BRUTOS = []; IMP_MAPA = null; IMP_PROCESSADOS = null;
+  passoSelecionarArquivos();
+}
+
+function passoSelecionarArquivos(){
+  $('impBody').innerHTML =
+    '<p>Selecione os arquivos de comparativo de quinzena (.xls, .xlsx ou .ods). O nome deve seguir o padrão <b>DD-MM-AAAA_-_COMPARATIVO_QUINZENA.xls</b> para identificar automaticamente a data e a quinzena (dias 1–15 = 1ª quinzena, 16 em diante = 2ª).</p>'+
+    '<div class="imp-drop" id="impDrop">Clique para escolher os arquivos, ou arraste-os aqui</div>'+
+    '<input type="file" id="impFileInput" multiple accept=".xls,.xlsx,.ods" style="display:none">'+
+    '<ul class="imp-lista" id="impListaArquivos"></ul>'+
+    '<div id="impAvisoArquivos"></div>'+
+    '<div class="imp-acoes"><button type="button" id="impCancelar1">Cancelar</button><button type="button" class="primario" id="impAvancar1" disabled>Avançar</button></div>';
+
+  const drop = $('impDrop'), input = $('impFileInput');
+  drop.addEventListener('click', function(){ input.click(); });
+  ['dragover','dragenter'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(e){ tratarArquivos(e.dataTransfer.files); });
+  input.addEventListener('change', function(e){ tratarArquivos(e.target.files); });
+  $('impCancelar1').addEventListener('click', function(){ $('dlgImport').close(); });
+  $('impAvancar1').addEventListener('click', function(){ passoMapeamento(); });
+
+  function tratarArquivos(fileList){
+    const arquivos = Array.prototype.slice.call(fileList);
+    if (!arquivos.length) return;
+    $('impAvisoArquivos').innerHTML = '<div class="imp-spinner"></div>';
+    carregarXLSX().then(function(){
+      return Promise.all(arquivos.map(lerArquivo));
+    }).then(function(lidos){
+      IMP_ARQUIVOS_BRUTOS = IMP_ARQUIVOS_BRUTOS.concat(lidos.filter(function(x){ return x; }));
+      renderListaArquivos();
+    }).catch(function(e){
+      $('impAvisoArquivos').innerHTML = '<div class="imp-aviso">Erro ao ler arquivos: '+esc(e.message)+'</div>';
+    });
+  }
+
+  function lerArquivo(file){
+    return file.arrayBuffer().then(function(buf){
+      const m = file.name.match(/^(\d{2})-(\d{2})-(\d{4})/);
+      let quinzena = null, periodId = null, data = null, ano = null, mes = null, precisaData = true;
+      if (m){
+        const dia = +m[1], mesN = +m[2], anoN = +m[3];
+        quinzena = dia <= 15 ? '1' : '2';
+        periodId = anoN + '-' + String(mesN).padStart(2,'0');
+        data = m[1]+'/'+m[2]+'/'+m[3];
+        ano = anoN; mes = mesN; precisaData = false;
+      }
+      let workbook;
+      try{ workbook = XLSX.read(buf, {type:'array'}); }
+      catch(e){ return { nome:file.name, erro:'Não foi possível abrir este arquivo ('+e.message+').' }; }
+      return { nome:file.name, quinzena:quinzena, periodId:periodId, data:data, ano:ano, mes:mes, precisaData:precisaData, workbook:workbook };
+    });
+  }
+
+  function renderListaArquivos(){
+    const ul = $('impListaArquivos');
+    ul.innerHTML = IMP_ARQUIVOS_BRUTOS.map(function(a, i){
+      if (a.erro) return '<li><span>'+esc(a.nome)+'</span><span style="color:var(--alert)">'+esc(a.erro)+'</span></li>';
+      const dataCampo = a.precisaData
+        ? '<input type="text" data-i="'+i+'" class="imp-data-manual" placeholder="DD/MM/AAAA" style="width:100px;font-size:11px;padding:2px 4px;"> <select data-i="'+i+'" class="imp-q-manual" style="font-size:11px;"><option value="1">1ª quinz.</option><option value="2">2ª quinz.</option></select>'
+        : esc(a.data)+' · '+(a.quinzena==='1'?'1ª quinzena':'2ª quinzena');
+      return '<li><span>'+esc(a.nome)+'</span><span>'+dataCampo+'</span></li>';
+    }).join('') || '<li>Nenhum arquivo selecionado.</li>';
+
+    ul.querySelectorAll('.imp-data-manual').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        const i = +inp.dataset.i; const mm = inp.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (mm){ IMP_ARQUIVOS_BRUTOS[i].data = inp.value; IMP_ARQUIVOS_BRUTOS[i].ano = +mm[3]; IMP_ARQUIVOS_BRUTOS[i].mes = +mm[2]; IMP_ARQUIVOS_BRUTOS[i].periodId = mm[3]+'-'+mm[2]; }
+      });
+    });
+    ul.querySelectorAll('.imp-q-manual').forEach(function(sel){
+      sel.addEventListener('change', function(){ IMP_ARQUIVOS_BRUTOS[+sel.dataset.i].quinzena = sel.value; });
+    });
+
+    const validos = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro; });
+    $('impAvisoArquivos').innerHTML = validos.length ? '' : '<div class="imp-aviso">Nenhum arquivo válido selecionado.</div>';
+    $('impAvancar1').disabled = !validos.length;
+  }
+}
+
+function acharLinhaCabecalho(matriz){
+  let melhor = 0, melhorQtd = -1;
+  for (let i=0; i<Math.min(8, matriz.length); i++){
+    const linha = matriz[i] || [];
+    const qtd = linha.filter(function(c){ return c!==null && c!==undefined && String(c).trim()!==''; }).length;
+    if (qtd > melhorQtd){ melhorQtd = qtd; melhor = i; }
+  }
+  return melhor;
+}
+
+function detectarColuna(celulas, incluir, excluir){
+  excluir = excluir || [];
+  let melhor = -1;
+  celulas.forEach(function(c, i){
+    if (melhor !== -1) return;
+    const t = normalizar(c);
+    if (!t) return;
+    const bate = incluir.some(function(k){ return t.indexOf(k) >= 0; });
+    const ruim = excluir.some(function(k){ return t.indexOf(k) >= 0; });
+    if (bate && !ruim) melhor = i;
+  });
+  return melhor;
+}
+
+function acharAba(workbook, incluir, excluir){
+  excluir = excluir || [];
+  let achada = null;
+  workbook.SheetNames.forEach(function(n){
+    if (achada) return;
+    const t = normalizar(n);
+    const bate = incluir.some(function(k){ return t.indexOf(k) >= 0; });
+    const ruim = excluir.some(function(k){ return t.indexOf(k) >= 0; });
+    if (bate && !ruim) achada = n;
+  });
+  return achada;
+}
+
+function matrizDaAba(workbook, nomeAba){
+  const ws = workbook.Sheets[nomeAba];
+  if (!ws) return [];
+  return XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:null });
+}
+
+function passoMapeamento(){
+  const validos = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro; });
+  if (!validos.length){ passoSelecionarArquivos(); return; }
+  const base = validos[0];
+  const wb = base.workbook;
+
+  const nomeDetalhe = acharAba(wb, ['liquidacao basico','liquidacoes'], ['dinamica','pivot']) || wb.SheetNames[0];
+  const nomePivot = acharAba(wb, ['dinamica'], []) || (wb.SheetNames[1] || wb.SheetNames[0]);
+
+  const matrizDet = matrizDaAba(wb, nomeDetalhe);
+  const matrizPiv = matrizDaAba(wb, nomePivot);
+  const linhaCabDet = acharLinhaCabecalho(matrizDet);
+  const linhaCabPiv = acharLinhaCabecalho(matrizPiv);
+  const cabDet = matrizDet[linhaCabDet] || [];
+  const cabPiv = matrizPiv[linhaCabPiv] || [];
+
+  const sugestao = {
+    codigo: detectarColuna(cabDet, ['cod fornecedor','cod credor','codigo fornecedor','codigo credor','cod forn'], []),
+    nome: detectarColuna(cabDet, ['fornecedor','credor','razao social'], ['codigo','cod ']),
+    vinculoDet: detectarColuna(cabDet, ['vinculo'], []),
+    valorDet: detectarColuna(cabDet, ['valor liquido','liquido'], []),
+    exercicio: detectarColuna(cabDet, ['exercicio'], []),
+    liquidacao: detectarColuna(cabDet, ['liquidacao', 'nr liquidacao', 'numero liquidacao'], []),
+    empenho: detectarColuna(cabDet, ['empenho'], []),
+    vinculoPiv: detectarColuna(cabPiv, ['vinculo','rotulo'], []),
+    valorPiv: detectarColuna(cabPiv, ['valor','total'], [])
+  };
+
+  function selectHTML(id, celulas, selecionado, opcional){
+    let opts = (opcional ? '<option value="-1">— não usar —</option>' : (selecionado<0 ? '<option value="-1" selected disabled>— selecione —</option>' : '')) +
+      celulas.map(function(c,i){ return '<option value="'+i+'"'+(i===selecionado?' selected':'')+'>Coluna '+(i+1)+': '+esc(String(c===null||c===undefined?'(vazio)':c))+'</option>'; }).join('');
+    return '<select id="'+id+'">'+opts+'</select>';
+  }
+
+  $('impBody').innerHTML =
+    '<h4>Estrutura detectada</h4>'+
+    '<p>Arquivo de referência: <b>'+esc(base.nome)+'</b>. Confira as abas e colunas identificadas — o mesmo mapeamento será aplicado a todos os '+validos.length+' arquivo(s) selecionados.</p>'+
+    '<div class="imp-map"><label>Aba de detalhe</label>'+selectAbaHTML('impAbaDet', wb.SheetNames, nomeDetalhe)+
+    '<label>Aba dinâmica (totais)</label>'+selectAbaHTML('impAbaPiv', wb.SheetNames, nomePivot)+'</div>'+
+    '<h4>Mapeamento — aba de detalhe (liquidações por fornecedor)</h4>'+
+    '<div class="imp-map">'+
+    '<label>Código do fornecedor</label>'+selectHTML('mapCodigo', cabDet, sugestao.codigo, false)+
+    '<label>Nome do fornecedor</label>'+selectHTML('mapNome', cabDet, sugestao.nome, true)+
+    '<label>Vínculo</label>'+selectHTML('mapVinculoDet', cabDet, sugestao.vinculoDet, false)+
+    '<label>Valor líquido</label>'+selectHTML('mapValorDet', cabDet, sugestao.valorDet, false)+
+    '<label>Exercício</label>'+selectHTML('mapExercicio', cabDet, sugestao.exercicio, true)+
+    '<label>Nº liquidação</label>'+selectHTML('mapLiquidacao', cabDet, sugestao.liquidacao, true)+
+    '<label>Nº empenho</label>'+selectHTML('mapEmpenho', cabDet, sugestao.empenho, true)+
+    '</div>'+
+    '<h4>Mapeamento — aba dinâmica (totais por vínculo)</h4>'+
+    '<div class="imp-map">'+
+    '<label>Vínculo</label>'+selectHTML('mapVinculoPiv', cabPiv, sugestao.vinculoPiv, false)+
+    '<label>Valor total</label>'+selectHTML('mapValorPiv', cabPiv, sugestao.valorPiv, false)+
+    '</div>'+
+    (sugestao.codigo<0 || sugestao.vinculoDet<0 || sugestao.valorDet<0 || sugestao.vinculoPiv<0 || sugestao.valorPiv<0
+      ? '<div class="imp-aviso">Alguma coluna obrigatória não foi identificada automaticamente — confira e selecione manualmente acima antes de avançar.</div>' : '')+
+    '<div class="imp-acoes"><button type="button" id="impVoltar2">Voltar</button><button type="button" class="primario" id="impAvancar2">Validar dados</button></div>';
+
+  function selectAbaHTML(id, nomes, selecionado){
+    return '<select id="'+id+'">'+nomes.map(function(n){ return '<option value="'+esc(n)+'"'+(n===selecionado?' selected':'')+'>'+esc(n)+'</option>'; }).join('')+'</select>';
+  }
+
+  $('impVoltar2').addEventListener('click', passoSelecionarArquivos);
+  $('impAvancar2').addEventListener('click', function(){
+    IMP_MAPA = {
+      sheetDetalhe: $('impAbaDet').value, sheetPivot: $('impAbaPiv').value,
+      codigo:+$('mapCodigo').value, nome:+$('mapNome').value, vinculoDet:+$('mapVinculoDet').value, valorDet:+$('mapValorDet').value,
+      exercicio:+$('mapExercicio').value, liquidacao:+$('mapLiquidacao').value, empenho:+$('mapEmpenho').value,
+      vinculoPiv:+$('mapVinculoPiv').value, valorPiv:+$('mapValorPiv').value
+    };
+    if (IMP_MAPA.codigo<0 || IMP_MAPA.vinculoDet<0 || IMP_MAPA.valorDet<0 || IMP_MAPA.vinculoPiv<0 || IMP_MAPA.valorPiv<0){
+      alert2('Selecione todas as colunas obrigatórias antes de continuar.'); return;
+    }
+    passoValidacao();
+  });
+
+  // trocar aba de referência ao mudar os selects de aba (re-roda detecção de colunas)
+  ['impAbaDet','impAbaPiv'].forEach(function(id){
+    $(id).addEventListener('change', function(){ passoMapeamento(); });
+  });
+}
+
+function alert2(msg){
+  const el = document.createElement('div'); el.className='imp-aviso'; el.textContent = msg;
+  const acoes = document.querySelector('.imp-acoes');
+  if (acoes) acoes.parentNode.insertBefore(el, acoes); else $('impBody').insertAdjacentElement('afterbegin', el);
+  setTimeout(function(){ el.remove(); }, 4500);
+}
+
+function extrairRegistros(matriz, linhaCabIdx, mapa, ehPivot){
+  const out = [];
+  for (let i=linhaCabIdx+1; i<matriz.length; i++){
+    const l = matriz[i];
+    if (!l) continue;
+    const vinc = ehPivot ? l[mapa.vinculoPiv] : l[mapa.vinculoDet];
+    if (vinc===null || vinc===undefined || String(vinc).trim()==='') continue;
+    const vinculo = String(vinc).trim();
+    if (vinculo.indexOf('19.')===0) continue; // extraorçamentário, sempre ignorado
+    if (ehPivot){
+      out.push({ vinculo:vinculo, valor:Number(l[mapa.valorPiv])||0 });
+    } else {
+      out.push({
+        codigo: mapa.codigo>=0 ? String(l[mapa.codigo]) : '',
+        nome: mapa.nome>=0 ? String(l[mapa.nome]||'') : '',
+        vinculo: vinculo,
+        valor: Number(l[mapa.valorDet])||0,
+        exercicio: mapa.exercicio>=0 ? (Number(l[mapa.exercicio])||0) : 0,
+        liquidacao: mapa.liquidacao>=0 ? String(l[mapa.liquidacao]||'') : '',
+        empenho: mapa.empenho>=0 ? String(l[mapa.empenho]||'') : ''
+      });
+    }
+  }
+  return out;
+}
+
+function passoValidacao(){
+  $('impBody').innerHTML = '<div class="imp-spinner"></div><p style="text-align:center">Conferindo os arquivos…</p>';
+
+  const validos = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro && a.periodId && a.quinzena; });
+  const semData = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro && (!a.periodId || !a.quinzena); });
+
+  Promise.resolve().then(function(){
+    if (!IMP_EXISTENTES){
+      return lerAbas().then(function(tabs){
+        const arqs = paraObjetos(tabs[ABA.arquivos]);
+        IMP_EXISTENTES = {};
+        arqs.forEach(function(a){ IMP_EXISTENTES[String(a.PeriodId)+'|'+String(a.Quinzena)] = true; });
+      });
+    }
+  }).then(function(){
+    const resultados = validos.map(function(a){
+      const chave = a.periodId+'|'+a.quinzena;
+      const duplicado = !!IMP_EXISTENTES[chave];
+      let matDet = [], matPiv = [], erro = null;
+      try{
+        matDet = matrizDaAba(a.workbook, IMP_MAPA.sheetDetalhe);
+        matPiv = matrizDaAba(a.workbook, IMP_MAPA.sheetPivot);
+        if (!matDet.length) erro = 'aba "'+IMP_MAPA.sheetDetalhe+'" não encontrada ou vazia neste arquivo';
+        if (!erro && !matPiv.length) erro = 'aba "'+IMP_MAPA.sheetPivot+'" não encontrada ou vazia neste arquivo';
+      } catch(e){ erro = e.message; }
+      if (erro) return { arquivo:a, duplicado:duplicado, erro:erro };
+
+      const linhaCabDet = acharLinhaCabecalho(matDet);
+      const linhaCabPiv = acharLinhaCabecalho(matPiv);
+      const detalhe = extrairRegistros(matDet, linhaCabDet, IMP_MAPA, false);
+      const pivot = extrairRegistros(matPiv, linhaCabPiv, IMP_MAPA, true);
+      const totalDet = detalhe.reduce(function(s,r){ return s+r.valor; }, 0);
+      const totalPiv = pivot.reduce(function(s,r){ return s+r.valor; }, 0);
+      const diff = Math.abs(totalDet - totalPiv);
+      return { arquivo:a, duplicado:duplicado, detalhe:detalhe, pivot:pivot, totalDet:totalDet, totalPiv:totalPiv, diff:diff };
+    });
+
+    renderValidacao(resultados, semData);
+  }).catch(function(e){
+    $('impBody').innerHTML = '<div class="imp-aviso">Erro ao validar: '+esc(e.message)+'</div><div class="imp-acoes"><button type="button" id="impVoltarErro">Voltar</button></div>';
+    $('impVoltarErro').addEventListener('click', passoMapeamento);
+  });
+}
+
+function renderValidacao(resultados, semData){
+  IMP_PROCESSADOS = resultados;
+  const linhas = resultados.map(function(r){
+    if (r.erro) return '<tr><td>'+esc(r.arquivo.nome)+'</td><td colspan="4" style="color:var(--alert)">'+esc(r.erro)+'</td></tr>';
+    const status = r.duplicado ? '<span style="color:var(--gold)">já importado — será ignorado</span>' : (r.diff>0.01 ? '<span style="color:var(--alert)">diferença entre detalhe e totais</span>' : '<span style="color:var(--under-ink)">ok</span>');
+    return '<tr><td>'+esc(r.arquivo.data)+' · '+(r.arquivo.quinzena==='1'?'1ª':'2ª')+'</td>'+
+      '<td class="n">'+r.detalhe.length+'</td>'+
+      '<td class="n">'+fmtBRL(r.totalDet)+'</td>'+
+      '<td class="n">'+fmtBRL(r.totalPiv)+'</td>'+
+      '<td>'+status+'</td></tr>';
+  }).join('');
+
+  const validosParaImportar = resultados.filter(function(r){ return !r.erro && !r.duplicado; });
+  const duplicados = resultados.filter(function(r){ return !r.erro && r.duplicado; }).length;
+  const comErro = resultados.filter(function(r){ return r.erro; }).length;
+  const comDivergencia = validosParaImportar.filter(function(r){ return r.diff>0.01; }).length;
+
+  $('impBody').innerHTML =
+    '<h4>Conferência antes de importar</h4>'+
+    (semData.length ? '<div class="imp-aviso">'+semData.length+' arquivo(s) sem data/quinzena definida foram ignorados.</div>' : '')+
+    '<table class="imp-tabela"><thead><tr><th>Arquivo</th><th class="n">Liquidações</th><th class="n">Total detalhe</th><th class="n">Total dinâmica</th><th>Situação</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+    (comDivergencia ? '<div class="imp-aviso">'+comDivergencia+' arquivo(s) têm diferença entre a soma do detalhe e o total da aba dinâmica — confira antes de confirmar; mesmo assim serão importados com os valores do detalhe.</div>' : '')+
+    (duplicados ? '<div class="imp-aviso">'+duplicados+' arquivo(s) já existem na planilha (mesma data/quinzena) e serão ignorados.</div>' : '')+
+    (validosParaImportar.length ? '<div class="imp-ok">'+validosParaImportar.length+' arquivo(s) novo(s) prontos para importar, totalizando '+fmtBRL(validosParaImportar.reduce(function(s,r){return s+r.totalDet;},0))+'.</div>' : '<div class="imp-aviso">Nenhum arquivo novo para importar.</div>')+
+    '<div class="imp-acoes"><button type="button" id="impVoltar3">Voltar</button><button type="button" class="primario" id="impConfirmar" '+(validosParaImportar.length?'':'disabled')+'>Importar '+validosParaImportar.length+' arquivo(s)</button></div>';
+
+  $('impVoltar3').addEventListener('click', passoMapeamento);
+  $('impConfirmar').addEventListener('click', gravarImportacao);
+}
+
+function gravarImportacao(){
+  $('impBody').innerHTML = '<div class="imp-spinner"></div><p style="text-align:center">Gravando na planilha…</p>';
+  const validos = IMP_PROCESSADOS.filter(function(r){ return !r.erro && !r.duplicado; });
+
+  const linhasArquivos = [], linhasPivot = [], linhasLiq = [];
+  validos.forEach(function(r){
+    const a = r.arquivo;
+    linhasArquivos.push([a.quinzena, a.periodId, a.data, a.ano, a.mes, a.nome, 'realizado', a.nome, true]);
+    r.pivot.forEach(function(p){ linhasPivot.push([a.quinzena, a.periodId, p.vinculo, '', p.valor]); });
+    r.detalhe.forEach(function(d){ linhasLiq.push([d.codigo, d.nome, d.vinculo, a.quinzena, a.periodId, d.valor, d.exercicio, d.liquidacao, d.empenho]); });
+  });
+
+  function anexar(aba, linhas){
+    if (!linhas.length) return Promise.resolve();
+    return SHEETS('/values/'+encodeURIComponent(aba+'!A1')+':append?valueInputOption=RAW', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: linhas })
+    });
+  }
+
+  anexar(ABA.arquivos, linhasArquivos)
+    .then(function(){ return anexar(ABA.pivot, linhasPivot); })
+    .then(function(){ return anexar(ABA.liq, linhasLiq); })
+    .then(function(){
+      return SHEETS('?fields=sheets.properties.title').then(function(meta){
+        const existentes = (meta.sheets||[]).map(function(s){ return s.properties.title; });
+        if (existentes.indexOf(ABA_HIST) < 0){
+          return SHEETS(':batchUpdate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ requests:[{ addSheet:{ properties:{ title:ABA_HIST } } }] }) })
+            .then(function(){ return anexar(ABA_HIST, [CAB_HIST]); });
+        }
+      });
+    })
+    .then(function(){
+      return anexar(ABA_HIST, [[ new Date().toISOString(), (SESSAO?SESSAO.u:''), validos.map(function(r){ return r.arquivo.nome; }).join('; '), linhasLiq.length ]]);
+    })
+    .then(function(){
+      IMP_EXISTENTES = null;
+      $('impBody').innerHTML = '<div class="imp-ok">Importação concluída: '+validos.length+' arquivo(s), '+linhasLiq.length+' liquidações.</div><div class="imp-acoes"><button type="button" class="primario" id="impFinalizar">Concluir e atualizar</button></div>';
+      $('impFinalizar').addEventListener('click', function(){ $('dlgImport').close(); buscarUsuarioEDados(); });
+    })
+    .catch(function(e){
+      $('impBody').innerHTML = '<div class="imp-aviso">Erro ao gravar na planilha.\n\nDetalhe: '+esc(e.message)+(dicaParaErro(e)?'\n\n'+esc(dicaParaErro(e)):'')+'</div><div class="imp-acoes"><button type="button" id="impVoltarErroGrava">Voltar</button></div>';
+      $('impVoltarErroGrava').addEventListener('click', function(){ renderValidacao(IMP_PROCESSADOS, []); });
+    });
+}
+
+
 function agendarInatividade(){
   if (INATIV_TIMER) clearTimeout(INATIV_TIMER);
   function reiniciar(){
@@ -952,8 +1363,10 @@ function sair(){
 
 $('btnLogin').addEventListener('click', iniciarLogin);
 $('btnTentarNovamente').addEventListener('click', iniciarLogin);
-$('btnAtualizarDados').addEventListener('click', function(){ TOKEN ? buscarUsuarioEDados() : iniciarLogin(); });
 $('btnSair').addEventListener('click', sair);
+$('btnAbrirImportacao').addEventListener('click', abrirImportacao);
+$('btnAbrirImportacao2').addEventListener('click', abrirImportacao);
+$('btnFecharImport').addEventListener('click', function(){ $('dlgImport').close(); });
 
 })();
 </script>
