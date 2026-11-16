@@ -130,6 +130,25 @@ nav.tabs button{
 nav.tabs button:hover{ color:var(--ink); }
 nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--gold); }
 nav.tabs button:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+.nav-extra{
+  margin-left:auto; display:flex; align-items:center; gap:4px; flex-shrink:0;
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+.nav-extra #userEmail{
+  font-size:11.5px; color:var(--ink-soft); margin-right:4px; white-space:nowrap;
+  max-width:180px; overflow:hidden; text-overflow:ellipsis;
+}
+.nav-extra button{
+  appearance:none; border:1px solid var(--line-strong); background:transparent; cursor:pointer;
+  padding:6px 11px; font-size:11.5px; font-weight:600; color:var(--ink-soft);
+  border-radius:16px; white-space:nowrap; transition:color .15s ease, background .15s ease, border-color .15s ease;
+}
+.nav-extra button:hover{ color:var(--ink); border-color:var(--ink-soft); background:rgba(0,0,0,0.04); }
+.nav-extra button#btnSair{ color:#8a1f1f; border-color:#d8b8b8; }
+.nav-extra button#btnSair:hover{ background:rgba(138,31,31,0.07); border-color:#8a1f1f; }
+@media (max-width:640px){
+  .nav-extra #userEmail{ display:none; }
+}
 
 main{ padding:22px clamp(16px,4vw,44px) 60px; max-width:1400px; margin:0 auto; }
 section.panel{ display:none; }
@@ -583,8 +602,6 @@ td.part{ font-weight:700; color:var(--over-ink); }
 .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--contrato);animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 #erroLogin .erro-box{background:var(--alert-soft);border:1px solid var(--alert);color:var(--alert);border-radius:8px;padding:14px 18px;font-size:13px;max-width:480px;text-align:left;white-space:pre-line;}
-#userBadge{position:fixed;top:10px;right:14px;z-index:999;background:rgba(0,0,0,0.55);color:#fff;font-size:11.5px;padding:6px 12px;border-radius:20px;display:none;align-items:center;gap:10px;font-family:'Inter',sans-serif;}
-#userBadge button{background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;font-size:11.5px;padding:0;font-family:'Inter',sans-serif;}
 dialog#dlgImport{border:none;border-radius:12px;padding:0;width:min(760px,92vw);max-height:88vh;box-shadow:0 20px 60px rgba(0,0,0,0.35);font-family:'Inter',system-ui,sans-serif;}
 dialog#dlgImport::backdrop{background:rgba(20,26,34,0.55);}
 .imp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:2;}
@@ -611,6 +628,23 @@ dialog#dlgImport::backdrop{background:rgba(20,26,34,0.55);}
 .imp-acoes button.primario{background:var(--contrato);color:#fff;border-color:var(--contrato);}
 .imp-acoes button:disabled{opacity:.5;cursor:not-allowed;}
 .imp-spinner{width:22px;height:22px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--contrato);animation:spin .8s linear infinite;margin:0 auto 10px;}
+dialog#dlgParam{border:none;border-radius:12px;padding:0;width:min(820px,94vw);max-height:88vh;box-shadow:0 20px 60px rgba(0,0,0,0.35);font-family:'Inter',system-ui,sans-serif;}
+dialog#dlgParam::backdrop{background:rgba(20,26,34,0.55);}
+.param-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;}
+.param-tabs button{appearance:none;border:none;background:transparent;cursor:pointer;padding:9px 14px;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--ink-soft);border-bottom:3px solid transparent;}
+.param-tabs button.active{color:var(--ink);border-bottom-color:var(--gold);}
+.param-painel{display:none;}
+.param-painel.active{display:block;}
+.param-tabela{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
+.param-tabela th,.param-tabela td{border:1px solid var(--line);padding:6px 8px;text-align:left;}
+.param-tabela th{background:var(--azul-esc);color:#fff;font-weight:600;}
+.param-tabela input{font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:5px;background:var(--card);color:var(--ink);width:100%;box-sizing:border-box;}
+.param-remover{background:none;border:1px solid var(--alert);color:var(--alert);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;}
+.param-remover:hover{background:var(--alert-soft);}
+.param-add{background:none;border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:7px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;}
+.param-add:hover{color:var(--ink);border-color:var(--ink-soft);}
+.param-salvar{background:var(--contrato);color:#fff;border:1px solid var(--contrato);border-radius:7px;padding:8px 16px;font-size:12.5px;font-weight:600;cursor:pointer;}
+.param-vazio{color:var(--ink-soft);font-size:12.5px;padding:14px 0;text-align:center;}
 </style>
 
 <div id="login">
@@ -636,14 +670,20 @@ dialog#dlgImport::backdrop{background:rgba(20,26,34,0.55);}
   <button class="btn-google" id="btnAbrirImportacao" type="button">Importar Dados</button>
 </div>
 
-<div id="userBadge"><span id="userEmail"></span><button id="btnAbrirImportacao2" type="button">Importar dados</button><button id="btnSair" type="button">Sair</button></div>
-
 <dialog id="dlgImport">
   <div class="imp-head">
     <h3>Importar quinzenas</h3>
     <button type="button" class="imp-fechar" id="btnFecharImport" aria-label="Fechar">×</button>
   </div>
   <div class="imp-body" id="impBody"></div>
+</dialog>
+
+<dialog id="dlgParam">
+  <div class="imp-head">
+    <h3>Parâmetros</h3>
+    <button type="button" class="imp-fechar" id="btnFecharParam" aria-label="Fechar">×</button>
+  </div>
+  <div class="imp-body" id="paramBody"></div>
 </dialog>
 
 <div id="app" style="display:none">
@@ -664,6 +704,12 @@ dialog#dlgImport::backdrop{background:rgba(20,26,34,0.55);}
   <button class="tab-btn" data-q="2">2ª quinzena</button>
   <button class="tab-btn" data-q="M">Mensal</button>
   <button class="tab-btn" data-q="F">Fornecedores</button>
+  <div class="nav-extra">
+    <span id="userEmail"></span>
+    <button type="button" id="btnAbrirParametros">Parâmetros</button>
+    <button type="button" id="btnAbrirImportacao2">Importar dados</button>
+    <button type="button" id="btnSair">Sair</button>
+  </div>
 </nav>
 
 <main>
@@ -940,7 +986,6 @@ function buscarUsuarioEDados(){
     .then(function(info){
       SESSAO = { u: info.email, nome: info.name, ativo: Date.now() };
       $('userEmail').textContent = SESSAO.nome || SESSAO.u;
-      $('userBadge').style.display = 'flex';
       agendarInatividade();
       return garantirAbas();
     })
@@ -976,6 +1021,251 @@ let IMP_ARQUIVOS_BRUTOS = [];   // { nome, quinzena, periodId, data, ano, mes, w
 let IMP_MAPA = null;            // { sheetDetalhe, sheetPivot, cabDetalheIdx, cabPivotIdx, detalhe:{...}, pivot:{...} }
 let IMP_PROCESSADOS = null;     // resultado da validação (passo 3)
 let IMP_EXISTENTES = null;      // Set 'periodId|quinzena' já presentes na planilha
+const ABA_PARAM = 'Parametros';
+const CAB_PARAM = ['Competencia','DataQuinzena1','DataQuinzena2'];
+let IMP_PARAMS_QUINZENA = null; // { 'AAAA-MM': {d1:'DD/MM/AAAA', d2:'DD/MM/AAAA'} } — datas oficiais de corte de quinzena, por decreto
+// Datas de pagamento do decreto municipal "DATAS DE PAGAMENTO FORNECEDORES 2026" (Materiais).
+// Importante: a quinzena NÃO é definida pelo dia do mês do arquivo (não é "1-15 = 1ª, 16-31 = 2ª").
+// O decreto nomeia como "1ª quinzena" o pagamento feito em meados do mês (normalmente entre os dias 13 e 19,
+// referente a notas fiscais emitidas de 16 do mês anterior até o início deste mês) e como "2ª quinzena" o
+// pagamento feito no fim do mês (normalmente entre os dias 26 e 30, referente a notas emitidas do dia ~3 ao 15
+// deste mesmo mês). Esta tabela serve de padrão embutido; a aba "Parametros" da planilha tem prioridade sobre
+// ela (uso para corrigir datas que caiam em fim de semana/feriado, ou para cadastrar outros anos).
+const DECRETO_PADRAO = {
+  '2026-01': { d1:null,          d2:'29/01/2026' },
+  '2026-02': { d1:'19/02/2026',  d2:'26/02/2026' },
+  '2026-03': { d1:'13/03/2026',  d2:'30/03/2026' },
+  '2026-04': { d1:'15/04/2026',  d2:'29/04/2026' },
+  '2026-05': { d1:'15/05/2026',  d2:'28/05/2026' },
+  '2026-06': { d1:'16/06/2026',  d2:'29/06/2026' },
+  '2026-07': { d1:'16/07/2026',  d2:'30/07/2026' },
+  '2026-08': { d1:'17/08/2026',  d2:'27/08/2026' },
+  '2026-09': { d1:'16/09/2026',  d2:'29/09/2026' },
+  '2026-10': { d1:'16/10/2026',  d2:'29/10/2026' },
+  '2026-11': { d1:'16/11/2026',  d2:'27/11/2026' },
+  '2026-12': { d1:'16/12/2026',  d2:null         }
+};
+
+function garantirAbaExtra(nome, cabecalho){
+  return SHEETS('?fields=sheets.properties.title').then(function(meta){
+    const existentes = (meta.sheets||[]).map(function(s){ return s.properties.title; });
+    if (existentes.indexOf(nome) >= 0) return;
+    return SHEETS(':batchUpdate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ requests:[{ addSheet:{ properties:{ title:nome } } }] }) })
+      .then(function(){
+        return SHEETS('/values/'+encodeURIComponent(nome+'!A1')+':append?valueInputOption=RAW', {
+          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values:[cabecalho] })
+        });
+      });
+  });
+}
+
+function carregarParametrosQuinzena(forcar){
+  if (IMP_PARAMS_QUINZENA && !forcar) return Promise.resolve(IMP_PARAMS_QUINZENA);
+  return garantirAbaExtra(ABA_PARAM, CAB_PARAM).then(function(){
+    return SHEETS('/values/'+encodeURIComponent(ABA_PARAM)+'?valueRenderOption=UNFORMATTED_VALUE');
+  }).then(function(resp){
+    const linhas = paraObjetos(resp.values||[]);
+    IMP_PARAMS_QUINZENA = {};
+    linhas.forEach(function(l){ IMP_PARAMS_QUINZENA[String(l.Competencia)] = { d1:String(l.DataQuinzena1||''), d2:String(l.DataQuinzena2||'') }; });
+    return IMP_PARAMS_QUINZENA;
+  }).catch(function(){ IMP_PARAMS_QUINZENA = {}; return IMP_PARAMS_QUINZENA; });
+}
+
+let PARAM_ALTEROU = false;
+
+function colLetra(n){
+  let s = '';
+  while (n > 0){ const m = (n-1)%26; s = String.fromCharCode(65+m) + s; n = Math.floor((n-1)/26); }
+  return s;
+}
+
+function anexarLinhas(aba, linhas){
+  if (!linhas.length) return Promise.resolve();
+  return SHEETS('/values/'+encodeURIComponent(aba+'!A1')+':append?valueInputOption=RAW', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: linhas })
+  });
+}
+
+function registrarHistorico(descricao, totalLinhas){
+  return garantirAbaExtra(ABA_HIST, CAB_HIST).then(function(){
+    return anexarLinhas(ABA_HIST, [[ new Date().toISOString(), (SESSAO?SESSAO.u:''), descricao, totalLinhas ]]);
+  });
+}
+
+function reescreverAba(nome, cabecalho, linhasValores, totalAntigoLinhas){
+  const novoTotal = linhasValores.length;
+  const letra = colLetra(cabecalho.length);
+  const corpo = [cabecalho].concat(linhasValores);
+  return SHEETS('/values/'+encodeURIComponent(nome+'!A1:'+letra+(novoTotal+1))+'?valueInputOption=RAW', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: corpo })
+  }).then(function(){
+    if (totalAntigoLinhas > novoTotal){
+      return SHEETS('/values/'+encodeURIComponent(nome+'!A'+(novoTotal+2)+':'+letra+(totalAntigoLinhas+1))+':clear', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})
+      });
+    }
+  });
+}
+
+/* ---------- Remoção de arquivos já importados ---------- */
+function removerArquivo(periodId, quinzena){
+  return lerAbas().then(function(tabs){
+    const arqObjs = paraObjetos(tabs[ABA.arquivos]);
+    const pivObjs = paraObjetos(tabs[ABA.pivot]);
+    const liqObjs = paraObjetos(tabs[ABA.liq]);
+    const bate = function(o){ return String(o.PeriodId)===String(periodId) && String(o.Quinzena)===String(quinzena); };
+    const arqNovos = arqObjs.filter(function(o){ return !bate(o); });
+    const pivNovos = pivObjs.filter(function(o){ return !bate(o); });
+    const liqNovos = liqObjs.filter(function(o){ return !bate(o); });
+    const nomeArquivo = arqObjs.filter(bate).map(function(o){ return o.Arquivo||o.SourceHeader||''; }).join('; ') || ('quinzena '+quinzena+' — período '+periodId);
+
+    const paraLinha = function(cabecalho){ return function(o){ return cabecalho.map(function(h){ return o[h]!==undefined ? o[h] : ''; }); }; };
+    const linhasArq = arqNovos.map(paraLinha(CABECALHOS.Arquivos));
+    const linhasPiv = pivNovos.map(paraLinha(CABECALHOS.Pivot));
+    const linhasLiq = liqNovos.map(paraLinha(CABECALHOS.Liquidacoes));
+
+    return Promise.all([
+      reescreverAba(ABA.arquivos, CABECALHOS.Arquivos, linhasArq, arqObjs.length),
+      reescreverAba(ABA.pivot, CABECALHOS.Pivot, linhasPiv, pivObjs.length),
+      reescreverAba(ABA.liq, CABECALHOS.Liquidacoes, linhasLiq, liqObjs.length)
+    ]).then(function(){
+      IMP_EXISTENTES = null;
+      PARAM_ALTEROU = true;
+      return registrarHistorico('Remoção de arquivo: '+nomeArquivo, liqObjs.length - liqNovos.length);
+    });
+  });
+}
+
+function salvarParametrosQuinzena(linhas){
+  const valores = linhas.map(function(l){ return [l.competencia, l.d1, l.d2]; });
+  return garantirAbaExtra(ABA_PARAM, CAB_PARAM)
+    .then(function(){ return SHEETS('/values/'+encodeURIComponent(ABA_PARAM)+'?valueRenderOption=UNFORMATTED_VALUE'); })
+    .then(function(resp){
+      const totalAntigo = Math.max((resp.values||[]).length - 1, 0);
+      return reescreverAba(ABA_PARAM, CAB_PARAM, valores, totalAntigo);
+    })
+    .then(function(){
+      IMP_PARAMS_QUINZENA = null;
+      PARAM_ALTEROU = true;
+      return carregarParametrosQuinzena(true);
+    });
+}
+
+/* ---------- Tela de Parâmetros (arquivos importados + datas de quinzenas) ---------- */
+function abrirParametros(){
+  $('dlgParam').showModal();
+  renderParamShell('arquivos');
+}
+
+function renderParamShell(aba){
+  $('paramBody').innerHTML =
+    '<div class="param-tabs">'+
+      '<button type="button" class="'+(aba==='arquivos'?'active':'')+'" data-paba="arquivos">Arquivos importados</button>'+
+      '<button type="button" class="'+(aba==='quinzenas'?'active':'')+'" data-paba="quinzenas">Datas de quinzenas</button>'+
+    '</div>'+
+    '<div id="paramConteudo"><div class="imp-spinner"></div></div>';
+  Array.prototype.forEach.call($('paramBody').querySelectorAll('.param-tabs button'), function(btn){
+    btn.addEventListener('click', function(){ renderParamShell(btn.getAttribute('data-paba')); });
+  });
+  if (aba === 'quinzenas') renderParamQuinzenas(); else renderParamArquivos();
+}
+
+function renderParamArquivos(){
+  lerAbas().then(function(tabs){
+    const arqObjs = paraObjetos(tabs[ABA.arquivos]);
+    const ordenados = arqObjs.slice().sort(function(a,b){
+      const da = String(a.Data).split('/').reverse().join('-'), db = String(b.Data).split('/').reverse().join('-');
+      return da < db ? 1 : da > db ? -1 : 0;
+    });
+    const linhasHtml = ordenados.map(function(o){
+      return '<tr data-pid="'+esc(o.PeriodId)+'" data-q="'+esc(o.Quinzena)+'">'+
+        '<td>'+(String(o.Quinzena)==='1'?'1ª':'2ª')+' quinzena</td>'+
+        '<td>'+esc(o.Mes)+'/'+esc(o.Ano)+'</td>'+
+        '<td>'+esc(o.Data)+'</td>'+
+        '<td>'+esc(o.Arquivo||o.SourceHeader||'')+'</td>'+
+        '<td><button type="button" class="param-remover" data-acao="remover">Remover</button></td>'+
+      '</tr>';
+    }).join('');
+    $('paramConteudo').innerHTML = ordenados.length ?
+      ('<table class="param-tabela"><thead><tr><th>Quinzena</th><th>Competência</th><th>Data</th><th>Arquivo</th><th></th></tr></thead><tbody>'+linhasHtml+'</tbody></table>') :
+      '<div class="param-vazio">Nenhum arquivo importado ainda.</div>';
+    Array.prototype.forEach.call($('paramConteudo').querySelectorAll('button[data-acao="remover"]'), function(btn){
+      btn.addEventListener('click', function(){
+        if (btn.textContent !== 'Confirmar?'){
+          btn.textContent = 'Confirmar?';
+          setTimeout(function(){ if (btn.isConnected && btn.textContent==='Confirmar?') btn.textContent = 'Remover'; }, 4000);
+          return;
+        }
+        const tr = btn.closest('tr');
+        const pid = tr.getAttribute('data-pid'), q = tr.getAttribute('data-q');
+        btn.disabled = true; btn.textContent = 'Removendo…';
+        removerArquivo(pid, q).then(function(){
+          renderParamArquivos();
+        }).catch(function(e){
+          $('paramConteudo').insertAdjacentHTML('afterbegin', '<div class="imp-aviso">Erro ao remover: '+esc(e.message)+'</div>');
+          btn.disabled = false; btn.textContent = 'Remover';
+        });
+      });
+    });
+  }).catch(function(e){
+    $('paramConteudo').innerHTML = '<div class="imp-aviso">Erro ao carregar arquivos: '+esc(e.message)+'</div>';
+  });
+}
+
+function renderParamQuinzenas(){
+  carregarParametrosQuinzena(true).then(function(mapa){
+    const linhas = Object.keys(mapa).sort().map(function(k){ return { competencia:k, d1:mapa[k].d1, d2:mapa[k].d2 }; });
+    desenharParamQuinzenas(linhas);
+  }).catch(function(e){
+    $('paramConteudo').innerHTML = '<div class="imp-aviso">Erro ao carregar parâmetros: '+esc(e.message)+'</div>';
+  });
+}
+
+function desenharParamQuinzenas(linhas){
+  const linhasHtml = linhas.map(function(l, i){
+    return '<tr data-i="'+i+'">'+
+      '<td><input type="text" class="pc" value="'+esc(l.competencia)+'" placeholder="AAAA-MM"></td>'+
+      '<td><input type="text" class="pd1" value="'+esc(l.d1)+'" placeholder="DD/MM/AAAA"></td>'+
+      '<td><input type="text" class="pd2" value="'+esc(l.d2)+'" placeholder="DD/MM/AAAA"></td>'+
+      '<td><button type="button" class="param-remover" data-acao="rmlinha">Remover</button></td>'+
+    '</tr>';
+  }).join('');
+  $('paramConteudo').innerHTML =
+    '<p style="color:var(--ink-soft);font-size:12.5px;margin:0 0 12px;">Datas oficiais de pagamento por quinzena, conforme o decreto "Datas de Pagamento Fornecedores". O decreto de 2026 já vem cadastrado por padrão (não precisa digitar de novo); use esta tela só para corrigir uma data que caia em fim de semana/feriado ou para cadastrar outro ano. A "1ª quinzena" é paga em meados do mês (normalmente entre os dias 13 e 19) e a "2ª quinzena" no fim do mês (normalmente entre os dias 26 e 30) — quando a data de um arquivo importado coincidir com uma data cadastrada aqui, ela tem prioridade sobre o padrão embutido e sobre a estimativa automática.</p>'+
+    '<table class="param-tabela"><thead><tr><th>Competência (AAAA-MM)</th><th>Data 1ª quinzena</th><th>Data 2ª quinzena</th><th></th></tr></thead><tbody id="paramLinhas">'+linhasHtml+'</tbody></table>'+
+    '<button type="button" class="param-add" id="paramAddLinha">+ Adicionar competência</button>'+
+    '<div id="paramAvisoSalvar"></div>'+
+    '<div class="imp-acoes"><button type="button" class="param-salvar" id="paramSalvar">Salvar parâmetros</button></div>';
+
+  $('paramAddLinha').addEventListener('click', function(){
+    linhas.push({ competencia:'', d1:'', d2:'' });
+    desenharParamQuinzenas(linhas);
+  });
+  Array.prototype.forEach.call($('paramLinhas').querySelectorAll('button[data-acao="rmlinha"]'), function(btn){
+    btn.addEventListener('click', function(){
+      const i = +btn.closest('tr').getAttribute('data-i');
+      linhas.splice(i, 1);
+      desenharParamQuinzenas(linhas);
+    });
+  });
+  $('paramSalvar').addEventListener('click', function(){
+    const linhasAtuais = Array.prototype.map.call($('paramLinhas').querySelectorAll('tr'), function(tr){
+      return {
+        competencia: tr.querySelector('.pc').value.trim(),
+        d1: tr.querySelector('.pd1').value.trim(),
+        d2: tr.querySelector('.pd2').value.trim()
+      };
+    }).filter(function(l){ return l.competencia; });
+    $('paramSalvar').disabled = true; $('paramSalvar').textContent = 'Salvando…';
+    salvarParametrosQuinzena(linhasAtuais).then(function(){
+      $('paramAvisoSalvar').innerHTML = '<div class="imp-ok">Parâmetros salvos.</div>';
+      $('paramSalvar').disabled = false; $('paramSalvar').textContent = 'Salvar parâmetros';
+    }).catch(function(e){
+      $('paramAvisoSalvar').innerHTML = '<div class="imp-aviso">Erro ao salvar: '+esc(e.message)+'</div>';
+      $('paramSalvar').disabled = false; $('paramSalvar').textContent = 'Salvar parâmetros';
+    });
+  });
+}
 
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtBRL(v){ return (Number(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -994,7 +1284,7 @@ function abrirImportacao(){
 
 function passoSelecionarArquivos(){
   $('impBody').innerHTML =
-    '<p>Selecione os arquivos de comparativo de quinzena (.xls, .xlsx ou .ods). O nome deve seguir o padrão <b>DD-MM-AAAA_-_COMPARATIVO_QUINZENA.xls</b> para identificar automaticamente a data e a quinzena (dias 1–15 = 1ª quinzena, 16 em diante = 2ª).</p>'+
+    '<p>Selecione os arquivos de comparativo de quinzena (.xls, .xlsx ou .ods). O nome deve seguir o padrão <b>DD-MM-AAAA_-_COMPARATIVO_QUINZENA.xls</b>, usando a data de pagamento, para identificar automaticamente a competência e a quinzena pelo decreto municipal de datas de pagamento (o decreto de 2026 já vem cadastrado; confira em "Parâmetros" se precisar ajustar).</p>'+
     '<div class="imp-drop" id="impDrop">Clique para escolher os arquivos, ou arraste-os aqui</div>'+
     '<input type="file" id="impFileInput" multiple accept=".xls,.xlsx,.ods" style="display:none">'+
     '<ul class="imp-lista" id="impListaArquivos"></ul>'+
@@ -1014,10 +1304,13 @@ function passoSelecionarArquivos(){
     const arquivos = Array.prototype.slice.call(fileList);
     if (!arquivos.length) return;
     $('impAvisoArquivos').innerHTML = '<div class="imp-spinner"></div>';
-    carregarXLSX().then(function(){
+    Promise.all([carregarXLSX(), carregarParametrosQuinzena()]).then(function(){
       return Promise.all(arquivos.map(lerArquivo));
     }).then(function(lidos){
-      IMP_ARQUIVOS_BRUTOS = IMP_ARQUIVOS_BRUTOS.concat(lidos.filter(function(x){ return x; }));
+      lidos.filter(function(x){ return x; }).forEach(function(novo){
+        const i = IMP_ARQUIVOS_BRUTOS.findIndex(function(a){ return a.nome === novo.nome; });
+        if (i >= 0) IMP_ARQUIVOS_BRUTOS[i] = novo; else IMP_ARQUIVOS_BRUTOS.push(novo);
+      });
       renderListaArquivos();
     }).catch(function(e){
       $('impAvisoArquivos').innerHTML = '<div class="imp-aviso">Erro ao ler arquivos: '+esc(e.message)+'</div>';
@@ -1026,19 +1319,33 @@ function passoSelecionarArquivos(){
 
   function lerArquivo(file){
     return file.arrayBuffer().then(function(buf){
-      const m = file.name.match(/^(\d{2})-(\d{2})-(\d{4})/);
-      let quinzena = null, periodId = null, data = null, ano = null, mes = null, precisaData = true;
+      const candidatos = Array.from(file.name.matchAll(/(\d{2})-(\d{2})-(\d{4})/g));
+      const m = candidatos.filter(function(c){ const d=+c[1], mo=+c[2]; return d>=1 && d<=31 && mo>=1 && mo<=12; })[0] || null;
+      let quinzena = null, periodId = null, data = null, ano = null, mes = null, precisaData = true, origemQuinzena = '';
       if (m){
         const dia = +m[1], mesN = +m[2], anoN = +m[3];
-        quinzena = dia <= 15 ? '1' : '2';
         periodId = anoN + '-' + String(mesN).padStart(2,'0');
         data = m[1]+'/'+m[2]+'/'+m[3];
         ano = anoN; mes = mesN; precisaData = false;
+        // A quinzena é definida pela DATA DE PAGAMENTO do decreto, não pelo dia do mês do arquivo:
+        // "1ª quinzena" paga-se em meados do mês (dias ~13 a 19); "2ª quinzena" paga-se no fim do mês (dias ~26 a 30).
+        quinzena = dia <= 20 ? '1' : '2';
+        origemQuinzena = 'estimativa (sem data do decreto p/ esta competência)';
+        const padrao = DECRETO_PADRAO[periodId];
+        if (padrao){
+          if (padrao.d1 === data){ quinzena = '1'; origemQuinzena = 'decreto de pagamentos 2026 (padrão embutido)'; }
+          else if (padrao.d2 === data){ quinzena = '2'; origemQuinzena = 'decreto de pagamentos 2026 (padrão embutido)'; }
+        }
+        const par = IMP_PARAMS_QUINZENA[periodId];
+        if (par){
+          if (par.d1 === data){ quinzena = '1'; origemQuinzena = 'parâmetro de quinzenas (aba Parametros)'; }
+          else if (par.d2 === data){ quinzena = '2'; origemQuinzena = 'parâmetro de quinzenas (aba Parametros)'; }
+        }
       }
       let workbook;
       try{ workbook = XLSX.read(buf, {type:'array'}); }
       catch(e){ return { nome:file.name, erro:'Não foi possível abrir este arquivo ('+e.message+').' }; }
-      return { nome:file.name, quinzena:quinzena, periodId:periodId, data:data, ano:ano, mes:mes, precisaData:precisaData, workbook:workbook };
+      return { nome:file.name, quinzena:quinzena, periodId:periodId, data:data, ano:ano, mes:mes, precisaData:precisaData, origemQuinzena:origemQuinzena, workbook:workbook };
     });
   }
 
@@ -1047,19 +1354,24 @@ function passoSelecionarArquivos(){
     ul.innerHTML = IMP_ARQUIVOS_BRUTOS.map(function(a, i){
       if (a.erro) return '<li><span>'+esc(a.nome)+'</span><span style="color:var(--alert)">'+esc(a.erro)+'</span></li>';
       const dataCampo = a.precisaData
-        ? '<input type="text" data-i="'+i+'" class="imp-data-manual" placeholder="DD/MM/AAAA" style="width:100px;font-size:11px;padding:2px 4px;"> <select data-i="'+i+'" class="imp-q-manual" style="font-size:11px;"><option value="1">1ª quinz.</option><option value="2">2ª quinz.</option></select>'
-        : esc(a.data)+' · '+(a.quinzena==='1'?'1ª quinzena':'2ª quinzena');
-      return '<li><span>'+esc(a.nome)+'</span><span>'+dataCampo+'</span></li>';
+        ? '<input type="text" data-i="'+i+'" class="imp-data-manual" value="'+esc(a.data||'')+'" placeholder="DD/MM/AAAA" style="width:100px;font-size:11px;padding:2px 4px;">'
+        : esc(a.data);
+      const qSel = '<select data-i="'+i+'" class="imp-q-manual" style="font-size:11px;">'+
+        '<option value="1"'+(a.quinzena==='1'?' selected':'')+'>1ª quinz.</option>'+
+        '<option value="2"'+(a.quinzena==='2'?' selected':'')+'>2ª quinz.</option></select>'+
+        (a.origemQuinzena ? ' <span style="color:var(--ink-faint);font-size:10.5px">('+esc(a.origemQuinzena)+')</span>' : '');
+      return '<li><span>'+esc(a.nome)+'</span><span>'+dataCampo+' · '+qSel+'</span></li>';
     }).join('') || '<li>Nenhum arquivo selecionado.</li>';
 
     ul.querySelectorAll('.imp-data-manual').forEach(function(inp){
       inp.addEventListener('change', function(){
         const i = +inp.dataset.i; const mm = inp.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
         if (mm){ IMP_ARQUIVOS_BRUTOS[i].data = inp.value; IMP_ARQUIVOS_BRUTOS[i].ano = +mm[3]; IMP_ARQUIVOS_BRUTOS[i].mes = +mm[2]; IMP_ARQUIVOS_BRUTOS[i].periodId = mm[3]+'-'+mm[2]; }
+        renderListaArquivos();
       });
     });
     ul.querySelectorAll('.imp-q-manual').forEach(function(sel){
-      sel.addEventListener('change', function(){ IMP_ARQUIVOS_BRUTOS[+sel.dataset.i].quinzena = sel.value; });
+      sel.addEventListener('change', function(){ IMP_ARQUIVOS_BRUTOS[+sel.dataset.i].quinzena = sel.value; IMP_ARQUIVOS_BRUTOS[+sel.dataset.i].origemQuinzena = 'ajustado manualmente'; renderListaArquivos(); });
     });
 
     const validos = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro; });
@@ -1114,7 +1426,7 @@ function matrizDaAba(workbook, nomeAba){
 function passoMapeamento(){
   const validos = IMP_ARQUIVOS_BRUTOS.filter(function(a){ return !a.erro; });
   if (!validos.length){ passoSelecionarArquivos(); return; }
-  const base = validos[0];
+  const base = validos.filter(function(a){ return a.workbook.SheetNames.length >= 2; })[0] || validos[0];
   const wb = base.workbook;
 
   const nomeDetalhe = acharAba(wb, ['liquidacao basico','liquidacoes'], ['dinamica','pivot']) || wb.SheetNames[0];
@@ -1128,8 +1440,8 @@ function passoMapeamento(){
   const cabPiv = matrizPiv[linhaCabPiv] || [];
 
   const sugestao = {
-    codigo: detectarColuna(cabDet, ['cod fornecedor','cod credor','codigo fornecedor','codigo credor','cod forn'], []),
-    nome: detectarColuna(cabDet, ['fornecedor','credor','razao social'], ['codigo','cod ']),
+    codigo: detectarColuna(cabDet, ['cod fornecedor','cod credor','codigo fornecedor','codigo credor','cod forn','fornecedor','credor'], ['nome','razao']),
+    nome: detectarColuna(cabDet, ['nome fornecedor','nome credor','razao social','nome'], []),
     vinculoDet: detectarColuna(cabDet, ['vinculo'], []),
     valorDet: detectarColuna(cabDet, ['valor liquido','liquido'], []),
     exercicio: detectarColuna(cabDet, ['exercicio'], []),
@@ -1208,6 +1520,7 @@ function extrairRegistros(matriz, linhaCabIdx, mapa, ehPivot){
     const vinc = ehPivot ? l[mapa.vinculoPiv] : l[mapa.vinculoDet];
     if (vinc===null || vinc===undefined || String(vinc).trim()==='') continue;
     const vinculo = String(vinc).trim();
+    if (!/^\d{2}\.\d{3}\.\d{4}$/.test(vinculo)) continue; // não é um vínculo real (ex.: linha "Total Resultado"/"Total Geral" da tabela dinâmica)
     if (vinculo.indexOf('19.')===0) continue; // extraorçamentário, sempre ignorado
     if (ehPivot){
       out.push({ vinculo:vinculo, valor:Number(l[mapa.valorPiv])||0 });
@@ -1241,26 +1554,40 @@ function passoValidacao(){
       });
     }
   }).then(function(){
+    // conflito: mais de um arquivo deste lote apontando para a mesma competência+quinzena
+    const porChave = {};
+    validos.forEach(function(a){ const k=a.periodId+'|'+a.quinzena; (porChave[k]=porChave[k]||[]).push(a); });
+
     const resultados = validos.map(function(a){
       const chave = a.periodId+'|'+a.quinzena;
       const duplicado = !!IMP_EXISTENTES[chave];
-      let matDet = [], matPiv = [], erro = null;
+      const conflito = porChave[chave].length > 1 ? porChave[chave].map(function(x){ return x.nome; }) : null;
+      let matDet = [], matPiv = [], erro = null, pivotCalculado = false;
       try{
         matDet = matrizDaAba(a.workbook, IMP_MAPA.sheetDetalhe);
-        matPiv = matrizDaAba(a.workbook, IMP_MAPA.sheetPivot);
         if (!matDet.length) erro = 'aba "'+IMP_MAPA.sheetDetalhe+'" não encontrada ou vazia neste arquivo';
-        if (!erro && !matPiv.length) erro = 'aba "'+IMP_MAPA.sheetPivot+'" não encontrada ou vazia neste arquivo';
+        if (!erro){
+          matPiv = matrizDaAba(a.workbook, IMP_MAPA.sheetPivot);
+          if (IMP_MAPA.sheetPivot === IMP_MAPA.sheetDetalhe || !matPiv.length) pivotCalculado = true;
+        }
       } catch(e){ erro = e.message; }
-      if (erro) return { arquivo:a, duplicado:duplicado, erro:erro };
+      if (erro) return { arquivo:a, duplicado:duplicado, conflito:conflito, erro:erro };
 
       const linhaCabDet = acharLinhaCabecalho(matDet);
-      const linhaCabPiv = acharLinhaCabecalho(matPiv);
       const detalhe = extrairRegistros(matDet, linhaCabDet, IMP_MAPA, false);
-      const pivot = extrairRegistros(matPiv, linhaCabPiv, IMP_MAPA, true);
+      let pivot;
+      if (pivotCalculado){
+        const porVinc = {};
+        detalhe.forEach(function(d){ porVinc[d.vinculo] = (porVinc[d.vinculo]||0) + d.valor; });
+        pivot = Object.keys(porVinc).map(function(v){ return { vinculo:v, valor:porVinc[v] }; });
+      } else {
+        const linhaCabPiv = acharLinhaCabecalho(matPiv);
+        pivot = extrairRegistros(matPiv, linhaCabPiv, IMP_MAPA, true);
+      }
       const totalDet = detalhe.reduce(function(s,r){ return s+r.valor; }, 0);
       const totalPiv = pivot.reduce(function(s,r){ return s+r.valor; }, 0);
       const diff = Math.abs(totalDet - totalPiv);
-      return { arquivo:a, duplicado:duplicado, detalhe:detalhe, pivot:pivot, totalDet:totalDet, totalPiv:totalPiv, diff:diff };
+      return { arquivo:a, duplicado:duplicado, conflito:conflito, pivotCalculado:pivotCalculado, detalhe:detalhe, pivot:pivot, totalDet:totalDet, totalPiv:totalPiv, diff:diff };
     });
 
     renderValidacao(resultados, semData);
@@ -1274,23 +1601,26 @@ function renderValidacao(resultados, semData){
   IMP_PROCESSADOS = resultados;
   const linhas = resultados.map(function(r){
     if (r.erro) return '<tr><td>'+esc(r.arquivo.nome)+'</td><td colspan="4" style="color:var(--alert)">'+esc(r.erro)+'</td></tr>';
-    const status = r.duplicado ? '<span style="color:var(--gold)">já importado — será ignorado</span>' : (r.diff>0.01 ? '<span style="color:var(--alert)">diferença entre detalhe e totais</span>' : '<span style="color:var(--under-ink)">ok</span>');
-    return '<tr><td>'+esc(r.arquivo.data)+' · '+(r.arquivo.quinzena==='1'?'1ª':'2ª')+'</td>'+
+    const status = r.conflito ? '<span style="color:var(--alert)">conflito: mesma competência/quinzena de outro arquivo deste lote</span>'
+      : r.duplicado ? '<span style="color:var(--gold)">já importado — será ignorado</span>'
+      : (r.diff>0.01 ? '<span style="color:var(--alert)">diferença entre detalhe e totais</span>' : '<span style="color:var(--under-ink)">ok</span>'+(r.pivotCalculado?' <span style="color:var(--ink-faint)">(totais calculados a partir do detalhe — sem aba dinâmica)</span>':''));
+    return '<tr><td>'+esc(r.arquivo.nome)+'<br><span style="color:var(--ink-faint)">'+esc(r.arquivo.data)+' · '+(r.arquivo.quinzena==='1'?'1ª':'2ª')+' quinzena</span></td>'+
       '<td class="n">'+r.detalhe.length+'</td>'+
       '<td class="n">'+fmtBRL(r.totalDet)+'</td>'+
       '<td class="n">'+fmtBRL(r.totalPiv)+'</td>'+
       '<td>'+status+'</td></tr>';
   }).join('');
 
-  const validosParaImportar = resultados.filter(function(r){ return !r.erro && !r.duplicado; });
-  const duplicados = resultados.filter(function(r){ return !r.erro && r.duplicado; }).length;
-  const comErro = resultados.filter(function(r){ return r.erro; }).length;
+  const validosParaImportar = resultados.filter(function(r){ return !r.erro && !r.duplicado && !r.conflito; });
+  const duplicados = resultados.filter(function(r){ return !r.erro && !r.conflito && r.duplicado; }).length;
+  const emConflito = resultados.filter(function(r){ return !r.erro && r.conflito; }).length;
   const comDivergencia = validosParaImportar.filter(function(r){ return r.diff>0.01; }).length;
 
   $('impBody').innerHTML =
     '<h4>Conferência antes de importar</h4>'+
     (semData.length ? '<div class="imp-aviso">'+semData.length+' arquivo(s) sem data/quinzena definida foram ignorados.</div>' : '')+
     '<table class="imp-tabela"><thead><tr><th>Arquivo</th><th class="n">Liquidações</th><th class="n">Total detalhe</th><th class="n">Total dinâmica</th><th>Situação</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+    (emConflito ? '<div class="imp-aviso">'+emConflito+' arquivo(s) apontam para a mesma competência e quinzena que outro arquivo deste lote — isso duplicaria dados. Volte e ajuste a quinzena/data de um deles antes de importar.</div>' : '')+
     (comDivergencia ? '<div class="imp-aviso">'+comDivergencia+' arquivo(s) têm diferença entre a soma do detalhe e o total da aba dinâmica — confira antes de confirmar; mesmo assim serão importados com os valores do detalhe.</div>' : '')+
     (duplicados ? '<div class="imp-aviso">'+duplicados+' arquivo(s) já existem na planilha (mesma data/quinzena) e serão ignorados.</div>' : '')+
     (validosParaImportar.length ? '<div class="imp-ok">'+validosParaImportar.length+' arquivo(s) novo(s) prontos para importar, totalizando '+fmtBRL(validosParaImportar.reduce(function(s,r){return s+r.totalDet;},0))+'.</div>' : '<div class="imp-aviso">Nenhum arquivo novo para importar.</div>')+
@@ -1367,6 +1697,11 @@ $('btnSair').addEventListener('click', sair);
 $('btnAbrirImportacao').addEventListener('click', abrirImportacao);
 $('btnAbrirImportacao2').addEventListener('click', abrirImportacao);
 $('btnFecharImport').addEventListener('click', function(){ $('dlgImport').close(); });
+$('btnAbrirParametros').addEventListener('click', abrirParametros);
+$('btnFecharParam').addEventListener('click', function(){ $('dlgParam').close(); });
+$('dlgParam').addEventListener('close', function(){
+  if (PARAM_ALTEROU){ PARAM_ALTEROU = false; buscarUsuarioEDados(); }
+});
 
 })();
 </script>
@@ -1593,9 +1928,10 @@ const S = {
 function inc(){ return S.q==='F' ? S.fInclude : S.include; }
 
 /* ================= SELEÇÃO AUTOMÁTICA DA QUINZENA ================= */
-// Regra: dias 1 a 15 → 1ª quinzena; dia 16 até o fim do mês → 2ª quinzena, do mês corrente.
+// Regra (conforme decreto de datas de pagamento): pagamentos de meados do mês (~dia 13 a 20) são
+// a 1ª quinzena; pagamentos de fim de mês (~dia 21 em diante) são a 2ª quinzena, do mês corrente.
 const TODAY = new Date();
-const AUTO = { q: TODAY.getDate() <= 15 ? '1' : '2',
+const AUTO = { q: TODAY.getDate() <= 20 ? '1' : '2',
                id: TODAY.getFullYear()+'-'+String(TODAY.getMonth()+1).padStart(2,'0') };
 const autoNotices = []; let AUTO_REF = null;
 function bestRefFor(q, wantedId){
