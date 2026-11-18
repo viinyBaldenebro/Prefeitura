@@ -653,23 +653,17 @@ function vAno(){
   const nMeses=cs.length,q=semAcento(UI.busca);
   const todos=porForn(rows).sort((a,b)=>b.total-a.total);
   const fs=todos.filter(g=>!q||semAcento(g.forn).includes(q)||g.doc.includes(UI.busca));
-  if(!UI.fornSel||(UI.fornSel!=='__todos'&&!todos.some(g=>g.cod===UI.fornSel)))UI.fornSel=todos[0]?todos[0].cod:'__todos';
-  const selRows=UI.fornSel==='__todos'?rows:rows.filter(r=>r.cod===UI.fornSel);
-  const evol=MES.map((m,i)=>{const rr=selRows.filter(r=>r.mes===i+1);return{label:m,val:sum(rr,r=>r.inss),qtd:rr.length}});
   const pendF=new Map();al.pend.forEach(a=>{const x=pendF.get(a.cod)||[];x.push(tipoAlerta(a.tipo));pendF.set(a.cod,x)});
-  const nomeSel=UI.fornSel==='__todos'?'Todos os fornecedores':(todos.find(g=>g.cod===UI.fornSel)||{}).forn;
-  const cab=`<tr><th class="stk">Fornecedor</th>${MES.map((m,i)=>{const c=UI.exercicio+'-'+pad(i+1);return`<th class="n">${m}<small>guia ${fdata(venc(c).iso).slice(0,5)}</small></th>`}).join('')}<th class="n">Total</th><th class="n">Média/mês</th><th>Comportamento</th><th></th></tr>`;
-  const M=`<table class="ol"><thead>${cab}</thead><tbody>${fs.map(g=>`<tr><td class="stk" style="min-width:230px"><a href="#" data-sel="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:600">${esc(g.forn)}</a>${pendF.has(g.cod)?`<div><span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span></div>`:''}</td>${MES.map((m,i)=>{const v=g.meses[i+1];return`<td class="n" style="${v?'':'color:#9aa7ad'}">${v?nb(v):'—'}</td>`}).join('')}<td class="n"><b>${nb(g.total)}</b></td><td class="n">${nb(nMeses?g.total/nMeses:0)}</td><td>${comportChip(g)}</td><td><button class="ico" data-forn="${esc(g.cod)}" title="Detalhes do ano" aria-label="Detalhes do ano de ${esc(g.forn)}">${IC.eye}</button></td></tr>`).join('')||'<tr><td colspan="17" class="text-center text-suave">Nenhum fornecedor encontrado.</td></tr>'}</tbody>
-    <tfoot><tr class="tot"><td class="stk">Total</td>${MES.map((m,i)=>{const t=sum(fs,g=>g.meses[i+1]||0);return`<td class="n">${t?nb(t):'—'}</td>`}).join('')}<td class="n">${nb(sum(fs,g=>g.total))}</td><td class="n">${nb(nMeses?sum(fs,g=>g.total)/nMeses:0)}</td><td></td><td></td></tr></tfoot></table>`;
-  const MC=fs.map(g=>`<div class="card"><div class="flex justify-between gap-2"><a href="#" data-sel="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:700">${esc(g.forn)}</a><button class="ico" data-forn="${esc(g.cod)}" aria-label="Detalhes">${IC.eye}</button></div>${pendF.has(g.cod)?`<span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span>`:''}<div class="text-xl font-bold mt-1 num" style="font-family:Montserrat">${brl(g.total)}</div><div class="text-xs text-suave">Média ${brl(nMeses?g.total/nMeses:0)}/mês · ${Object.keys(g.meses).length} mês(es)</div><div class="mt-1">${comportChip(g)}</div></div>`).join('');
+  const cab=`<tr><th class="stk">Fornecedor</th>${MES.map((m,i)=>{const c=UI.exercicio+'-'+pad(i+1);return`<th class="n">${m}<small>guia ${fdata(venc(c).iso).slice(0,5)}</small></th>`}).join('')}<th class="n">Total</th><th class="n">Média/mês</th><th>Comportamento</th></tr>`;
+  const M=`<table class="ol"><thead>${cab}</thead><tbody>${fs.map(g=>`<tr><td class="stk" style="min-width:230px"><a href="#" data-forn="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:600">${esc(g.forn)}</a>${pendF.has(g.cod)?`<div><span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span></div>`:''}</td>${MES.map((m,i)=>{const v=g.meses[i+1];return`<td class="n" style="${v?'':'color:#9aa7ad'}">${v?nb(v):'—'}</td>`}).join('')}<td class="n"><b>${nb(g.total)}</b></td><td class="n">${nb(nMeses?g.total/nMeses:0)}</td><td>${comportChip(g)}</td></tr>`).join('')||'<tr><td colspan="16" class="text-center text-suave">Nenhum fornecedor encontrado.</td></tr>'}</tbody>
+    <tfoot><tr class="tot"><td class="stk">Total</td>${MES.map((m,i)=>{const t=sum(fs,g=>g.meses[i+1]||0);return`<td class="n">${t?nb(t):'—'}</td>`}).join('')}<td class="n">${nb(sum(fs,g=>g.total))}</td><td class="n">${nb(nMeses?sum(fs,g=>g.total)/nMeses:0)}</td><td></td></tr></tfoot></table>`;
+  const MC=fs.map(g=>`<div class="card"><div class="flex justify-between gap-2"><a href="#" data-forn="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:700">${esc(g.forn)}</a></div>${pendF.has(g.cod)?`<span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span>`:''}<div class="text-xl font-bold mt-1 num" style="font-family:Montserrat">${brl(g.total)}</div><div class="text-xs text-suave">Média ${brl(nMeses?g.total/nMeses:0)}/mês · ${Object.keys(g.meses).length} mês(es)</div><div class="mt-1">${comportChip(g)}</div></div>`).join('');
   return`<div class="card mb-4"><h3 class="text-sm font-bold" style="color:var(--azul-esc)">INSS retido mês a mês — ${UI.exercicio}</h3>${chartBarras(itens)}</div>
   <h2 class="h2">Guias por competência</h2>${dual(T,C)}
   <p class="text-xs text-suave mt-2">Regra: o INSS retido no mês (${CRIT[UI.criterio]}) é recolhido até o dia 20 do mês seguinte; se o dia 20 for sábado, domingo ou feriado (nacional, SP ou cadastrado na aba ${ABA.fer}), a guia vence no dia útil anterior.</p>
-  <h2 class="h2" id="sec-evol">Fornecedores</h2>
-  <div class="card mb-4"><div class="flex flex-wrap items-end gap-3 mb-2"><div style="min-width:240px;flex:1"><label class="lb" for="f-sel">Evolução por fornecedor</label><select id="f-sel" class="w-full"><option value="__todos" ${UI.fornSel==='__todos'?'selected':''}>Todos os fornecedores</option>${todos.map(g=>`<option value="${esc(g.cod)}" ${g.cod===UI.fornSel?'selected':''}>${esc(g.forn)}</option>`).join('')}</select></div>
-    <div class="text-sm text-suave">${esc(nomeSel||'')} · ${brl(sum(selRows,r=>r.inss))} em ${selRows.length} nota(s)</div></div>${chartEvol(evol)}</div>
+  <h2 class="h2">Fornecedores</h2>
   <div class="mb-3" style="max-width:420px"><label class="lb" for="f-busca">Buscar fornecedor ou CNPJ</label><input id="f-busca" class="w-full" value="${esc(UI.busca)}" placeholder="Digite parte do nome"></div>
-  <p class="text-xs text-suave mb-2">INSS retido por mês e, sob cada mês, a data de recolhimento da guia. Clique no nome para ver a evolução no gráfico; o olho abre os detalhes do ano.</p>${dual(M,MC)}`;
+  <p class="text-xs text-suave mb-2">INSS retido por mês e, sob cada mês, a data de recolhimento da guia. Clique no nome do fornecedor para ver a evolução (gráfico e mês a mês) em detalhe.</p>${dual(M,MC)}`;
 }
 
 function vProj(p){
@@ -758,8 +752,6 @@ function ligarInss(){
   on('#chip-al',()=>{const e=$('#sec-alertas');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})});
   c.querySelectorAll('[data-nota]').forEach(b=>b.onclick=()=>abrirNotas(b.dataset.nota));
   c.querySelectorAll('[data-forn]').forEach(a=>a.onclick=e=>{e.preventDefault();abrirForn(a.dataset.forn)});
-  c.querySelectorAll('[data-sel]').forEach(a=>a.onclick=e=>{e.preventDefault();UI.fornSel=a.dataset.sel;renderInss();const t=$('#sec-evol');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
-  const fs=$('#f-sel');if(fs)fs.onchange=e=>{UI.fornSel=e.target.value;renderInss()};
   c.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{UI.subAl=b.dataset.sub;renderInss()});
   const fb=$('#f-busca');if(fb)fb.oninput=e=>{UI.busca=e.target.value;const pos=e.target.selectionStart;renderInss();const n=$('#f-busca');n.focus();n.setSelectionRange(pos,pos)};
   c.querySelectorAll('[data-al]').forEach(k=>k.onchange=()=>{k.checked?UI.selAl.add(k.dataset.al):UI.selAl.delete(k.dataset.al);renderInss()});
