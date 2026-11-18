@@ -70,6 +70,8 @@ dialog::backdrop{background:rgba(20,40,60,.45)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1B1F24;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99;max-width:90vw}
 .h2{font:700 16px Montserrat,Arial;color:var(--azul-esc);margin:22px 0 10px}
 #rel-print{display:none}
+.pill{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 14px;border-radius:99px;border:1px solid var(--azul);background:#fff;color:var(--azul-esc);font:600 12px Inter,Arial;cursor:pointer;line-height:1.5}
+.pill:hover{background:var(--chip)}
 details.acc{border:1px solid var(--linha);border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden}
 details.acc>summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
 details.acc>summary::-webkit-details-marker{display:none}
@@ -86,7 +88,8 @@ details.acc[open] .chev{transform:rotate(90deg)}
 .seg{display:inline-flex;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:3px}
 .seg button{border:0;background:none;padding:5px 16px;border-radius:7px;font:600 13px Inter,Arial;color:var(--suave);cursor:pointer}
 .seg button.on{background:var(--azul);color:#fff}
-.navmes{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 14px}
+.navmes{display:flex;align-items:flex-start;justify-content:center;gap:14px;margin:6px 0 14px}
+.navmes>button:not(.btn){margin-top:6px}
 .navmes>button:not(.btn){width:40px;height:40px;border-radius:50%;border:1px solid var(--linha);background:#fff;color:var(--azul-esc);font:700 24px/1 Arial;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 0 3px}
 .navmes>button:not(.btn):hover:not(:disabled){background:var(--chip)}
 .navmes>button:disabled{opacity:.35;cursor:not-allowed}
@@ -507,7 +510,7 @@ function limitesMes(){
   const min=cs.reduce((a,b)=>a<b?a:b,hc.slice(0,4)+'-01'),max=cs.reduce((a,b)=>a>b?a:b,hc);
   return{min,max};
 }
-function dual(tabela,cards){return`<div class="hidden md:block overflow-x-auto">${tabela}</div><div class="md:hidden space-y-3">${cards}</div>`}
+function dual(tabela,cards){return`<div class="flex justify-end mb-2"><button type="button" class="btn sec sm" data-copytbl title="Copia a tabela para colar no Excel ou Google Planilhas">⧉ Copiar tabela</button></div><div class="hidden md:block overflow-x-auto">${tabela}</div><div class="md:hidden space-y-3">${cards}</div>`}
 function montarMenu(){
   $('#menu').innerHTML=ACESSO.telas.map(t=>`<a data-tela="${t.id}" title="${esc(t.nome)}" class="${UI.tela===t.id?'on':''}"><span class="ic" aria-hidden="true">${t.icone}</span><span class="rot">${esc(t.nome)}</span></a>`).join('')||'<div class="text-sm text-suave px-2 rot">Nenhuma tela liberada.</div>';
 }
@@ -568,9 +571,10 @@ function renderInss(){
   <div class="navmes">
     <button id="m-prev" aria-label="${mensal?'Mês anterior':'Ano anterior'}" ${(mensal?UI.mes<=lim.min:iAno<=0)?'disabled':''}>‹</button>
     <div class="text-center"><b>${mensal?MESL[+UI.mes.slice(5)-1].replace(/^./,c=>c.toUpperCase())+' '+UI.mes.slice(0,4):'Exercício '+UI.exercicio}</b>
-      <small>${mensal?(UI.mes===hc?'Mês atual':UI.mes<hc?'Mês encerrado':'Mês futuro'):'Visão anual'}</small></div>
+      <small>${mensal?(UI.mes===hc?'Mês atual':UI.mes<hc?'Mês encerrado':'Mês futuro'):'Visão anual'}</small>
+      ${(mensal?UI.mes!==hc:UI.exercicio!==+hc.slice(0,4))?`<div><button type="button" class="pill" id="m-hoje">↺ ${mensal?'Voltar ao mês atual':'Voltar ao ano atual'}</button></div>`:''}</div>
     <button id="m-next" aria-label="${mensal?'Próximo mês':'Próximo ano'}" ${(mensal?UI.mes>=lim.max:iAno>=anosAsc.length-1)?'disabled':''}>›</button>
-    ${mensal&&UI.mes!==hc?'<button class="btn sec sm" id="m-hoje" style="margin-left:8px">Mês atual</button>':''}</div>`;
+</div>`;
   if(!D.rows.length){
     $('#conteudo').innerHTML=topo+`<div class="card text-center"><h2 class="h2" style="margin-top:0">Nenhum dado importado ainda</h2><p class="text-suave">${ACESSO.pode?'Use o botão <b>Importar</b> no cabeçalho para carregar o relatório SemAprop_INSS_EFD_Reinf.':'Peça a um usuário com perfil editor para importar o relatório do mês.'}</p></div>`;
     ligarInss();return;
@@ -609,6 +613,23 @@ function vMes(){
   <h2 class="h2" id="sec-alertas">Alertas do mês</h2>${vAlertas(al)}`;
 }
 
+function liqBox(rs){
+  const l=[...new Set(rs.map(r=>String(r.liq)))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true})).join('; ');
+  return`<div class="liqbox mt-3"><label class="lb">Liquidações (separadas por ponto e vírgula)</label><div class="flex gap-2 items-start"><textarea class="w-full" rows="2" readonly>${esc(l)}</textarea><button class="btn sm" type="button" data-copyliq>Copiar</button></div></div>`;
+}
+/* tabela -> texto separado por tabulação (cola direto em Excel / Google Planilhas) */
+function tabelaParaTSV(t){
+  const lim=c=>{const k=c.cloneNode(true);k.querySelectorAll('div,br,small,li').forEach(e=>e.before(' '));return k.textContent.replace(/\s+/g,' ').trim()};
+  const linhas=[...t.querySelectorAll('tr')].map(tr=>{const o=[];[...tr.children].forEach(c=>{o.push(lim(c));for(let i=1;i<(+c.colSpan||1);i++)o.push('')});return o});
+  const cab=linhas[0]||[],manter=cab.map((h,i)=>h!=='');
+  return linhas.map(l=>l.filter((x,i)=>manter[i]!==false).join('\t')).join('\n');
+}
+document.addEventListener('click',async e=>{
+  const bt=e.target.closest('[data-copytbl]');
+  if(bt){const w=bt.parentElement.nextElementSibling,t=w&&w.querySelector('table');if(!t)return;toast(await copiarTexto(tabelaParaTSV(t))?'Tabela copiada. Cole na planilha com Ctrl+V.':'Não foi possível copiar a tabela.');return}
+  const bl=e.target.closest('[data-copyliq]');
+  if(bl){const v=bl.closest('.liqbox').querySelector('textarea').value;toast(await copiarTexto(v)?'Liquidações copiadas.':'Não foi possível copiar. Selecione o texto e use Ctrl+C.')}
+});
 /* ---- notas de um fornecedor (modal) ---- */
 function notasHTML(rs){
   const alr=r=>{const t=[];if(r.base===0&&r.vdoc>0)t.push('Base zerada');else if(r.base>0&&r.inss===0)t.push('INSS zerado');if(r.base>0&&r.inss>r.base+0.005)t.push('INSS > base');return t};
@@ -629,6 +650,7 @@ function abrirNotas(cod){
     <div class="card kpi"><small>Valor das notas</small><b>${brl(sum(rs,r=>r.vdoc))}</b></div>
     <div class="card kpi"><small>Base de cálculo</small><b>${brl(sum(rs,r=>r.base))}</b></div>
     <div class="card kpi"><small>INSS retido</small><b>${brl(sum(rs,r=>r.inss))}</b><span>${IC.cal} Recolher até <b>${fdata(v.iso)}</b></span></div></div>
+   ${liqBox(rs)}
    <h3 class="h2">Notas do fornecedor no mês</h3>${nh}
    <div class="mt-3"><button class="btn sec" data-forn="${esc(cod)}">Ver evolução do ano deste fornecedor</button></div>`);
 }
@@ -700,10 +722,10 @@ function vProj(p){
 /* ---- alertas (do mês em exibição) ---- */
 function vAlertas(al){
   const sub=UI.subAl||'pend',pend=al.pend,just=al.just,pode=ACESSO.pode;
-  const tabP=`<table class="ol"><thead><tr><th style="width:34px">${pode?'<input type="checkbox" id="ck-all" aria-label="Selecionar todos">':''}</th><th>Fornecedor</th><th>Problema</th><th class="n">Notas</th><th class="n">Valor das notas</th><th>Liquidações</th></tr></thead><tbody>${pend.map(a=>`<tr><td>${pode?`<input type="checkbox" data-al="${esc(a.key)}" ${UI.selAl.has(a.key)?'checked':''} aria-label="Selecionar">`:''}</td><td><b>${esc(a.forn)}</b></td><td><span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span></td><td class="n">${a.n}</td><td class="n">${nb(a.vdoc)}</td><td class="text-xs text-suave">${esc(a.liqs.slice(0,6).join(', '))}${a.liqs.length>6?' … +'+(a.liqs.length-6):''}</td></tr>`).join('')||'<tr><td colspan="6" class="text-center text-suave">Nenhum alerta pendente neste mês.</td></tr>'}</tbody></table>`;
-  const cardP=pend.map(a=>`<div class="card"><label class="flex gap-3 items-start">${pode?`<input type="checkbox" data-al="${esc(a.key)}" ${UI.selAl.has(a.key)?'checked':''}>`:''}<span class="min-w-0"><b>${esc(a.forn)}</b><br><span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span><br><span class="text-xs text-suave">${a.n} nota(s) · ${brl(a.vdoc)}</span></span></label></div>`).join('')||'<div class="card text-center text-suave">Nenhum alerta pendente neste mês.</div>';
-  const tabJ=`<table class="ol"><thead><tr><th style="width:34px">${pode?'<input type="checkbox" id="ck-allj" aria-label="Selecionar todos">':''}</th><th>Fornecedor</th><th>Problema</th><th>Justificativa</th><th>Por / quando</th></tr></thead><tbody>${just.map(a=>`<tr><td>${pode?`<input type="checkbox" data-ju="${esc(a.key)}" ${UI.selJu.has(a.key)?'checked':''}>`:''}</td><td>${esc(a.forn)}</td><td><span class="chip cz">${esc(tipoAlerta(a.tipo))}</span></td><td>${esc(a.j.motivo)}</td><td class="text-xs text-suave">${esc(a.j.por)}<br>${esc(String(a.j.quando).slice(0,16).replace('T',' '))}</td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-suave">Nenhuma justificativa neste mês.</td></tr>'}</tbody></table>`;
-  const cardJ=just.map(a=>`<div class="card"><label class="flex gap-3 items-start">${pode?`<input type="checkbox" data-ju="${esc(a.key)}" ${UI.selJu.has(a.key)?'checked':''}>`:''}<span class="min-w-0"><b>${esc(a.forn)}</b><br><span class="chip cz">${esc(tipoAlerta(a.tipo))}</span><br><span class="text-sm">${esc(a.j.motivo)}</span><br><span class="text-xs text-suave">${esc(a.j.por)}</span></span></label></div>`).join('')||'<div class="card text-center text-suave">Nenhuma justificativa neste mês.</div>';
+  const tabP=`<table class="ol"><thead><tr><th style="width:34px">${pode?'<input type="checkbox" id="ck-all" aria-label="Selecionar todos">':''}</th><th>Fornecedor</th><th>Problema</th><th class="n">Notas</th><th class="n">Valor das notas</th><th>Liquidações</th><th style="width:44px"></th></tr></thead><tbody>${pend.map(a=>`<tr><td>${pode?`<input type="checkbox" data-al="${esc(a.key)}" ${UI.selAl.has(a.key)?'checked':''} aria-label="Selecionar">`:''}</td><td><b>${esc(a.forn)}</b></td><td><span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span></td><td class="n">${a.n}</td><td class="n">${nb(a.vdoc)}</td><td class="text-xs text-suave">${esc(a.liqs.slice(0,6).join('; '))}${a.liqs.length>6?' … +'+(a.liqs.length-6):''}</td><td><button class="ico" data-alnota="${esc(a.key)}" title="Ver as notas deste alerta" aria-label="Ver notas">${IC.eye}</button></td></tr>`).join('')||'<tr><td colspan="7" class="text-center text-suave">Nenhum alerta pendente neste mês.</td></tr>'}</tbody></table>`;
+  const cardP=pend.map(a=>`<div class="card"><label class="flex gap-3 items-start">${pode?`<input type="checkbox" data-al="${esc(a.key)}" ${UI.selAl.has(a.key)?'checked':''}>`:''}<span class="min-w-0"><b>${esc(a.forn)}</b><br><span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span><br><span class="text-xs text-suave">${a.n} nota(s) · ${brl(a.vdoc)}</span></span><button type="button" class="ico" style="margin-left:auto" data-alnota="${esc(a.key)}" aria-label="Ver notas">${IC.eye}</button></label></div>`).join('')||'<div class="card text-center text-suave">Nenhum alerta pendente neste mês.</div>';
+  const tabJ=`<table class="ol"><thead><tr><th style="width:34px">${pode?'<input type="checkbox" id="ck-allj" aria-label="Selecionar todos">':''}</th><th>Fornecedor</th><th>Problema</th><th>Justificativa</th><th>Por / quando</th><th style="width:44px"></th></tr></thead><tbody>${just.map(a=>`<tr><td>${pode?`<input type="checkbox" data-ju="${esc(a.key)}" ${UI.selJu.has(a.key)?'checked':''}>`:''}</td><td>${esc(a.forn)}</td><td><span class="chip cz">${esc(tipoAlerta(a.tipo))}</span></td><td>${esc(a.j.motivo)}</td><td class="text-xs text-suave">${esc(a.j.por)}<br>${esc(String(a.j.quando).slice(0,16).replace('T',' '))}</td><td><button class="ico" data-alnota="${esc(a.key)}" title="Ver as notas deste alerta" aria-label="Ver notas">${IC.eye}</button></td></tr>`).join('')||'<tr><td colspan="6" class="text-center text-suave">Nenhuma justificativa neste mês.</td></tr>'}</tbody></table>`;
+  const cardJ=just.map(a=>`<div class="card"><label class="flex gap-3 items-start">${pode?`<input type="checkbox" data-ju="${esc(a.key)}" ${UI.selJu.has(a.key)?'checked':''}>`:''}<span class="min-w-0"><b>${esc(a.forn)}</b><br><span class="chip cz">${esc(tipoAlerta(a.tipo))}</span><br><span class="text-sm">${esc(a.j.motivo)}</span><br><span class="text-xs text-suave">${esc(a.j.por)}</span></span><button type="button" class="ico" style="margin-left:auto" data-alnota="${esc(a.key)}" aria-label="Ver notas">${IC.eye}</button></label></div>`).join('')||'<div class="card text-center text-suave">Nenhuma justificativa neste mês.</div>';
   return`<p class="text-xs text-suave mb-2">Base de cálculo zerada (nota com valor), INSS zerado com base informada ou INSS maior que a base. Marque um ou mais e justifique para retirar o alerta; fica registrado quem, quando e o motivo.</p>
   <div class="flex gap-2 mb-3 flex-wrap"><button class="btn ${sub==='pend'?'':'sec'} sm" data-sub="pend">Pendentes (${pend.length})</button><button class="btn ${sub==='just'?'':'sec'} sm" data-sub="just">Justificados (${just.length})</button><div class="flex-1"></div>
     ${pode&&sub==='pend'?`<button class="btn sm" id="b-just" ${UI.selAl.size?'':'disabled'}>Justificar selecionados (${UI.selAl.size})</button>`:''}
@@ -714,6 +736,25 @@ function alertasAtuais(){
   const rs=UI.vista==='mensal'?D.rows.filter(r=>r.comp===UI.mes):rowsEx();
   const todos=calcAlertas(rs),j=estadoJust();
   return{pend:todos.filter(a=>!j.has(a.key)).sort((a,b)=>a.forn.localeCompare(b.forn)||a.comp.localeCompare(b.comp)),just:todos.filter(a=>j.has(a.key)).map(a=>({...a,j:j.get(a.key)})),j};
+}
+
+/* ---- notas de um alerta (modal) ---- */
+function tiposNota(r){const t=[];if(r.base===0&&r.vdoc>0)t.push('BASE_ZERADA');else if(r.base>0&&r.inss===0)t.push('INSS_ZERADO');if(r.base>0&&r.inss>r.base+0.005)t.push('INSS_MAIOR_BASE');return t}
+async function copiarTexto(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  try{const x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();const ok=document.execCommand('copy');x.remove();return ok}catch(e){return false}
+}
+function abrirAlerta(key){
+  const al=alertasAtuais(),a=[...al.pend,...al.just].find(x=>x.key===key);if(!a)return;
+  const rs=D.rows.filter(r=>r.cod===a.cod&&r.comp===a.comp&&tiposNota(r).includes(a.tipo)).sort((x,y)=>String(x.liq).localeCompare(String(y.liq),'pt-BR',{numeric:true}));
+  abrirLargo(a.forn,`${compLabel(a.comp)} · <span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span>`,
+   `<div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+    <div class="card kpi"><small>Notas com o alerta</small><b>${rs.length}</b></div>
+    <div class="card kpi"><small>Valor das notas</small><b>${brl(sum(rs,r=>r.vdoc))}</b></div>
+    <div class="card kpi"><small>Base de cálculo</small><b>${brl(sum(rs,r=>r.base))}</b></div>
+    <div class="card kpi"><small>INSS retido</small><b>${brl(sum(rs,r=>r.inss))}</b></div></div>
+   ${liqBox(rs)}
+   <h3 class="h2">Notas</h3>${notasHTML(rs)}`);
 }
 
 /* ---- modais grandes ---- */
@@ -742,7 +783,7 @@ function abrirForn(cod){
     const as=alerts.filter(a=>a.comp===comp&&!j.has(a.key)),b=sum(rr,r=>r.base),i=sum(rr,r=>r.inss);
     return`<details class="acc" ${m===ultMes?'open':''}><summary><span class="chev" aria-hidden="true">▸</span><b class="acc-m">${MES[m-1]}/${UI.exercicio}</b>
       <span class="acc-s"><span>${rr.length} nota(s)</span><span>Base ${nb(b)}</span><span><b>INSS ${nb(i)}</b></span><span>${b?pct(i/b,2):'—'}</span><span>${IC.cal} ${fdata(v.iso)}</span><span class="chip ${s.c}">${s.t}</span>${as.map(a=>`<span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span>`).join('')}</span></summary>
-      <div class="acc-b">${rr.length?notasHTML(rr):'<div class="text-sm text-suave p-2">Nenhuma nota neste mês.</div>'}</div></details>`;
+      <div class="acc-b">${rr.length?liqBox(rr)+'<div class="mt-3">'+notasHTML(rr)+'</div>':'<div class="text-sm text-suave p-2">Nenhuma nota neste mês.</div>'}</div></details>`;
   }).join('');
   abrirLargo(g.forn,`${esc(g.doc)} · ${esc(g.tipo)} · Exercício ${UI.exercicio}`,
   `<div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
@@ -764,13 +805,14 @@ function ligarInss(){
   c.querySelectorAll('[data-vista]').forEach(b=>b.onclick=()=>{UI.vista=b.dataset.vista;reset();renderInss()});
   on('#m-prev',()=>{if(UI.vista==='mensal')UI.mes=somaMes(UI.mes,-1);else{const a=exercicios().sort((x,y)=>x-y),i=a.indexOf(UI.exercicio);if(i>0)UI.exercicio=a[i-1]}reset();renderInss()});
   on('#m-next',()=>{if(UI.vista==='mensal')UI.mes=somaMes(UI.mes,1);else{const a=exercicios().sort((x,y)=>x-y),i=a.indexOf(UI.exercicio);if(i<a.length-1)UI.exercicio=a[i+1]}reset();renderInss()});
-  on('#m-hoje',()=>{UI.mes=hoje().slice(0,7);reset();renderInss()});
+  on('#m-hoje',()=>{if(UI.vista==='mensal')UI.mes=hoje().slice(0,7);else UI.exercicio=+hoje().slice(0,4);reset();renderInss()});
   const fc=$('#f-crit');if(fc)fc.onchange=e=>{UI.criterio=e.target.value;try{localStorage.setItem('ret_criterio',UI.criterio)}catch(x){}D.rows.forEach(aplicarComp);reset();renderInss()};
   on('#b-atual',()=>carregar(true));on('#b-print',()=>window.print());
   on('#b-sim',async()=>{const v=await modal({titulo:'Simular data de referência',texto:'Informe uma data (dd/mm/aaaa) para ver o painel como se fosse esse dia. Serve para conferir prazos e projeções.',campo:{rotulo:'Data',tipo:'text',valor:fdata(hoje()),obrigatorio:true},ok:'Simular'});if(!v)return;const i=toISO(v);if(!i){toast('Data inválida. Use dd/mm/aaaa.');return}UI.hoje=i===hojeReal()?null:i;UI.mes=null;reset();renderInss()});
   const sx=$('#b-sim-x');if(sx)sx.onclick=e=>{e.preventDefault();UI.hoje=null;UI.mes=null;renderInss()};
   on('#k-proj',abrirProj);
   on('#chip-al',()=>{const e=$('#sec-alertas');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})});
+  c.querySelectorAll('[data-alnota]').forEach(b=>b.onclick=e=>{e.preventDefault();abrirAlerta(b.dataset.alnota)});
   c.querySelectorAll('[data-nota]').forEach(b=>b.onclick=()=>abrirNotas(b.dataset.nota));
   c.querySelectorAll('[data-forn]').forEach(a=>a.onclick=e=>{e.preventDefault();abrirForn(a.dataset.forn)});
   c.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{UI.subAl=b.dataset.sub;renderInss()});
