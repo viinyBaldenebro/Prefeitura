@@ -70,6 +70,15 @@ dialog::backdrop{background:rgba(20,40,60,.45)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1B1F24;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99;max-width:90vw}
 .h2{font:700 16px Montserrat,Arial;color:var(--azul-esc);margin:22px 0 10px}
 #rel-print{display:none}
+details.acc{border:1px solid var(--linha);border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden}
+details.acc>summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc[open]>summary{background:var(--chip)}
+.acc .chev{display:inline-block;transition:transform .15s;color:var(--azul-esc)}
+details.acc[open] .chev{transform:rotate(90deg)}
+.acc-m{min-width:80px;font-family:Montserrat,Arial}
+.acc-s{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums;color:var(--suave)}
+.acc-b{padding:10px 12px;border-top:1px solid var(--linha)}
 [hidden]{display:none!important}
 #nav{width:256px;transition:transform .2s,width .2s;overflow:hidden}
 .nav a .ic{width:22px;text-align:center;flex:none}
@@ -601,21 +610,26 @@ function vMes(){
 }
 
 /* ---- notas de um fornecedor (modal) ---- */
-function abrirNotas(cod){
-  const comp=UI.mes,rs=D.rows.filter(r=>r.cod===cod&&r.comp===comp).sort((a,b)=>(baseData(a)||'').localeCompare(baseData(b)||'')||String(a.ndoc).localeCompare(String(b.ndoc)));
-  if(!rs.length)return;
-  const v=venc(comp),f=rs[0],j=estadoJust(),als=calcAlertas(rs);
+function notasHTML(rs){
   const alr=r=>{const t=[];if(r.base===0&&r.vdoc>0)t.push('Base zerada');else if(r.base>0&&r.inss===0)t.push('INSS zerado');if(r.base>0&&r.inss>r.base+0.005)t.push('INSS > base');return t};
   const T=`<table class="ol"><thead><tr><th>Nota / série</th><th>Emissão</th><th>Liquidação</th><th>Nº liq. · empenho</th><th class="n">Valor da nota</th><th class="n">Base</th><th class="n">INSS</th><th class="n">Alíq.</th><th>Alerta</th></tr></thead><tbody>${rs.map(r=>`<tr><td><b>${esc(r.ndoc)}</b> ${esc(r.serie)}</td><td>${fdata(r.demi)}</td><td>${fdata(r.dliq)}</td><td>${esc(r.liq)} · ${esc(r.emp)}</td><td class="n">${nb(r.vdoc)}</td><td class="n">${nb(r.base)}</td><td class="n"><b>${nb(r.inss)}</b></td><td class="n">${r.base?pct(r.inss/r.base,2):'—'}</td><td>${alr(r).map(t=>`<span class="chip cr">⚠ ${t}</span>`).join(' ')||'—'}</td></tr>`).join('')}</tbody>
     <tfoot><tr class="tot"><td colspan="4">Total · ${rs.length} nota(s)</td><td class="n">${nb(sum(rs,r=>r.vdoc))}</td><td class="n">${nb(sum(rs,r=>r.base))}</td><td class="n">${nb(sum(rs,r=>r.inss))}</td><td colspan="2"></td></tr></tfoot></table>`;
   const C=rs.map(r=>`<div class="card"><div class="flex justify-between gap-2"><b>Nota ${esc(r.ndoc)} ${esc(r.serie)}</b><span class="text-xs text-suave">Liq. ${fdata(r.dliq)}</span></div><div class="text-xs text-suave">Emissão ${fdata(r.demi)} · liq. nº ${esc(r.liq)}</div><div class="mt-1 text-sm">Nota ${brl(r.vdoc)} · base ${brl(r.base)}</div><div class="num font-bold">INSS ${brl(r.inss)} <span class="text-xs text-suave font-normal">${r.base?pct(r.inss/r.base,2):''}</span></div>${alr(r).map(t=>`<span class="chip cr">⚠ ${t}</span>`).join(' ')}</div>`).join('');
+  return dual(T,C);
+}
+
+function abrirNotas(cod){
+  const comp=UI.mes,rs=D.rows.filter(r=>r.cod===cod&&r.comp===comp).sort((a,b)=>(baseData(a)||'').localeCompare(baseData(b)||'')||String(a.ndoc).localeCompare(String(b.ndoc)));
+  if(!rs.length)return;
+  const v=venc(comp),f=rs[0],j=estadoJust(),als=calcAlertas(rs);
+  const nh=notasHTML(rs);
   abrirLargo(f.forn,`${esc(f.doc)} · ${esc(f.tipo)} · ${compLabel(comp)} (${CRIT[UI.criterio]})`,
    `<div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
     <div class="card kpi"><small>Notas</small><b>${rs.length}</b></div>
     <div class="card kpi"><small>Valor das notas</small><b>${brl(sum(rs,r=>r.vdoc))}</b></div>
     <div class="card kpi"><small>Base de cálculo</small><b>${brl(sum(rs,r=>r.base))}</b></div>
     <div class="card kpi"><small>INSS retido</small><b>${brl(sum(rs,r=>r.inss))}</b><span>${IC.cal} Recolher até <b>${fdata(v.iso)}</b></span></div></div>
-   <h3 class="h2">Notas do fornecedor no mês</h3>${dual(T,C)}
+   <h3 class="h2">Notas do fornecedor no mês</h3>${nh}
    <div class="mt-3"><button class="btn sec" data-forn="${esc(cod)}">Ver evolução do ano deste fornecedor</button></div>`);
 }
 
@@ -654,16 +668,16 @@ function vAno(){
   const todos=porForn(rows).sort((a,b)=>b.total-a.total);
   const fs=todos.filter(g=>!q||semAcento(g.forn).includes(q)||g.doc.includes(UI.busca));
   const pendF=new Map();al.pend.forEach(a=>{const x=pendF.get(a.cod)||[];x.push(tipoAlerta(a.tipo));pendF.set(a.cod,x)});
-  const cab=`<tr><th class="stk">Fornecedor</th>${MES.map((m,i)=>{const c=UI.exercicio+'-'+pad(i+1);return`<th class="n">${m}<small>guia ${fdata(venc(c).iso).slice(0,5)}</small></th>`}).join('')}<th class="n">Total</th><th class="n">Média/mês</th><th>Comportamento</th></tr>`;
-  const M=`<table class="ol"><thead>${cab}</thead><tbody>${fs.map(g=>`<tr><td class="stk" style="min-width:230px"><a href="#" data-forn="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:600">${esc(g.forn)}</a>${pendF.has(g.cod)?`<div><span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span></div>`:''}</td>${MES.map((m,i)=>{const v=g.meses[i+1];return`<td class="n" style="${v?'':'color:#9aa7ad'}">${v?nb(v):'—'}</td>`}).join('')}<td class="n"><b>${nb(g.total)}</b></td><td class="n">${nb(nMeses?g.total/nMeses:0)}</td><td>${comportChip(g)}</td></tr>`).join('')||'<tr><td colspan="16" class="text-center text-suave">Nenhum fornecedor encontrado.</td></tr>'}</tbody>
-    <tfoot><tr class="tot"><td class="stk">Total</td>${MES.map((m,i)=>{const t=sum(fs,g=>g.meses[i+1]||0);return`<td class="n">${t?nb(t):'—'}</td>`}).join('')}<td class="n">${nb(sum(fs,g=>g.total))}</td><td class="n">${nb(nMeses?sum(fs,g=>g.total)/nMeses:0)}</td><td></td></tr></tfoot></table>`;
-  const MC=fs.map(g=>`<div class="card"><div class="flex justify-between gap-2"><a href="#" data-forn="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:700">${esc(g.forn)}</a></div>${pendF.has(g.cod)?`<span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span>`:''}<div class="text-xl font-bold mt-1 num" style="font-family:Montserrat">${brl(g.total)}</div><div class="text-xs text-suave">Média ${brl(nMeses?g.total/nMeses:0)}/mês · ${Object.keys(g.meses).length} mês(es)</div><div class="mt-1">${comportChip(g)}</div></div>`).join('');
+  const fa=fs.map(g=>{const rr=rows.filter(r=>r.cod===g.cod);return{...g,n:rr.length,vdoc:sum(rr,r=>r.vdoc),base:sum(rr,r=>r.base)}});
+  const M=`<table class="ol"><thead><tr><th>Fornecedor</th><th class="n">Notas</th><th class="n">Total bruto das notas</th><th class="n">Base de cálculo</th><th class="n">Retenção no ano (INSS)</th><th style="width:44px"></th></tr></thead><tbody>${fa.map(g=>`<tr><td><a href="#" data-forn="${esc(g.cod)}" style="color:var(--azul-esc);font-weight:600">${esc(g.forn)}</a><div class="text-xs text-suave">${esc(g.doc)}</div>${pendF.has(g.cod)?`<div><span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span></div>`:''}</td><td class="n">${g.n}</td><td class="n">${nb(g.vdoc)}</td><td class="n">${nb(g.base)}</td><td class="n"><b>${nb(g.total)}</b></td><td><button class="ico" data-forn="${esc(g.cod)}" title="Ver o fornecedor em detalhe" aria-label="Ver ${esc(g.forn)} em detalhe">${IC.eye}</button></td></tr>`).join('')||'<tr><td colspan="6" class="text-center text-suave">Nenhum fornecedor encontrado.</td></tr>'}</tbody>
+    <tfoot><tr class="tot"><td>Total (${fa.length} fornecedores)</td><td class="n">${sum(fa,g=>g.n)}</td><td class="n">${nb(sum(fa,g=>g.vdoc))}</td><td class="n">${nb(sum(fa,g=>g.base))}</td><td class="n">${nb(sum(fa,g=>g.total))}</td><td></td></tr></tfoot></table>`;
+  const MC=fa.map(g=>`<div class="card"><div class="flex justify-between gap-2 items-start"><b>${esc(g.forn)}</b><button class="ico" data-forn="${esc(g.cod)}" aria-label="Ver em detalhe">${IC.eye}</button></div>${pendF.has(g.cod)?`<span class="chip cr">⚠ ${esc(pendF.get(g.cod)[0])}</span>`:''}<div class="text-xl font-bold mt-1 num" style="font-family:Montserrat">${brl(g.total)}</div><div class="text-xs text-suave">${g.n} nota(s) · bruto ${brl(g.vdoc)} · base ${brl(g.base)}</div></div>`).join('');
   return`<div class="card mb-4"><h3 class="text-sm font-bold" style="color:var(--azul-esc)">INSS retido mês a mês — ${UI.exercicio}</h3>${chartBarras(itens)}</div>
   <h2 class="h2">Guias por competência</h2>${dual(T,C)}
   <p class="text-xs text-suave mt-2">Regra: o INSS retido no mês (${CRIT[UI.criterio]}) é recolhido até o dia 20 do mês seguinte; se o dia 20 for sábado, domingo ou feriado (nacional, SP ou cadastrado na aba ${ABA.fer}), a guia vence no dia útil anterior.</p>
   <h2 class="h2">Fornecedores</h2>
   <div class="mb-3" style="max-width:420px"><label class="lb" for="f-busca">Buscar fornecedor ou CNPJ</label><input id="f-busca" class="w-full" value="${esc(UI.busca)}" placeholder="Digite parte do nome"></div>
-  <p class="text-xs text-suave mb-2">INSS retido por mês e, sob cada mês, a data de recolhimento da guia. Clique no nome do fornecedor para ver a evolução (gráfico e mês a mês) em detalhe.</p>${dual(M,MC)}`;
+  <p class="text-xs text-suave mb-2">Totais do exercício por fornecedor. O olho (ou o nome) abre a evolução mês a mês e os detalhes do fornecedor.</p>${dual(M,MC)}`;
 }
 
 function vProj(p){
@@ -722,8 +736,14 @@ function abrirForn(cod){
   let tend='Sem histórico suficiente para tendência.';
   if(ant.length&&ult.length){const a=ult.reduce((x,y)=>x+y,0)/ult.length,b=ant.reduce((x,y)=>x+y,0)/ant.length;tend=b>0?`Média dos últimos ${ult.length} mês(es): ${brl(a)} (${a>=b?'+':''}${pct((a-b)/b,0)} sobre os ${ant.length} anteriores).`:`Média dos últimos ${ult.length} mês(es): ${brl(a)}.`}
   const hc=hoje();
-  const linhas=mesesAno.map(m=>{const comp=UI.exercicio+'-'+pad(m),v=venc(comp),s=situacao(v.iso,hc),rr=rs.filter(r=>r.comp===comp),as=alerts.filter(a=>a.comp===comp&&!j.has(a.key));
-    return`<tr><td><b>${MES[m-1]}/${UI.exercicio}</b></td><td class="n">${rr.length}</td><td class="n">${nb(sum(rr,r=>r.base))}</td><td class="n"><b>${nb(sum(rr,r=>r.inss))}</b></td><td class="n">${sum(rr,r=>r.base)?pct(sum(rr,r=>r.inss)/sum(rr,r=>r.base),2):'—'}</td><td>${fdata(v.iso)} <span class="chip ${s.c}">${s.t}</span></td><td>${as.map(a=>`<span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span>`).join(' ')||'—'}</td></tr>`}).join('');
+  const ultMes=[...mesesAno].reverse().find(m=>(g.n[m]||0)>0);
+  const linhas=mesesAno.map(m=>{
+    const comp=UI.exercicio+'-'+pad(m),v=venc(comp),s=situacao(v.iso,hc),rr=rs.filter(r=>r.comp===comp).sort((a,b)=>(baseData(a)||'').localeCompare(baseData(b)||'')||String(a.ndoc).localeCompare(String(b.ndoc)));
+    const as=alerts.filter(a=>a.comp===comp&&!j.has(a.key)),b=sum(rr,r=>r.base),i=sum(rr,r=>r.inss);
+    return`<details class="acc" ${m===ultMes?'open':''}><summary><span class="chev" aria-hidden="true">▸</span><b class="acc-m">${MES[m-1]}/${UI.exercicio}</b>
+      <span class="acc-s"><span>${rr.length} nota(s)</span><span>Base ${nb(b)}</span><span><b>INSS ${nb(i)}</b></span><span>${b?pct(i/b,2):'—'}</span><span>${IC.cal} ${fdata(v.iso)}</span><span class="chip ${s.c}">${s.t}</span>${as.map(a=>`<span class="chip cr">⚠ ${esc(tipoAlerta(a.tipo))}</span>`).join('')}</span></summary>
+      <div class="acc-b">${rr.length?notasHTML(rr):'<div class="text-sm text-suave p-2">Nenhuma nota neste mês.</div>'}</div></details>`;
+  }).join('');
   abrirLargo(g.forn,`${esc(g.doc)} · ${esc(g.tipo)} · Exercício ${UI.exercicio}`,
   `<div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
     <div class="card kpi"><small>Retido no exercício</small><b>${brl(g.total)}</b></div>
@@ -732,8 +752,9 @@ function abrirForn(cod){
     <div class="card kpi"><small>Alíquota efetiva</small><b>${g.baseT?pct(g.total/g.baseT,2):'—'}</b><span>INSS ÷ base de cálculo</span></div></div>
   <div class="mt-3 flex gap-2 items-center flex-wrap"><b>Comportamento:</b> ${comportChip(g)} <span class="text-sm text-suave">${esc(tend)}</span></div>
   <div class="card mt-3"><h3 class="text-sm font-bold" style="color:var(--azul-esc)">Evolução mês a mês</h3>${chartEvol(itens)}</div>
-  <h3 class="h2">Mês a mês, com a data de recolhimento</h3>
-  <div class="overflow-x-auto"><table class="ol"><thead><tr><th>Mês</th><th class="n">Notas</th><th class="n">Base</th><th class="n">INSS retido</th><th class="n">Alíq. efetiva</th><th>Recolher até</th><th>Alertas</th></tr></thead><tbody>${linhas}</tbody></table></div>`);
+  <h3 class="h2">Mês a mês — abra um mês para ver as notas</h3>
+  <div id="acc">${linhas}</div>`);
+  document.querySelectorAll('#acc details').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)document.querySelectorAll('#acc details').forEach(o=>{if(o!==d)o.open=false})}));
 }
 
 /* ---- eventos da tela INSS ---- */
