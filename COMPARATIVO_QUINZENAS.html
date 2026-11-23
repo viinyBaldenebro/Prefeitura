@@ -141,11 +141,16 @@ nav.tabs button:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px
 .nav-extra button{
   appearance:none; border:1px solid var(--line-strong); background:transparent; cursor:pointer;
   padding:6px 11px; font-size:11.5px; font-weight:600; color:var(--ink-soft);
-  border-radius:4px; white-space:nowrap; transition:color .15s ease, background .15s ease, border-color .15s ease;
+  border-radius:16px; white-space:nowrap; transition:color .15s ease, background .15s ease, border-color .15s ease;
 }
 .nav-extra button:hover{ color:var(--ink); border-color:var(--ink-soft); background:rgba(0,0,0,0.04); }
 .nav-extra button#btnSair{ color:#8a1f1f; border-color:#d8b8b8; }
 .nav-extra button#btnSair:hover{ background:rgba(138,31,31,0.07); border-color:#8a1f1f; }
+.valor-toggle{ display:flex; border:1px solid var(--line-strong); border-radius:16px; overflow:hidden; margin-right:2px; }
+.valor-toggle button{ appearance:none; border:none; background:transparent; cursor:pointer; padding:6px 11px; font-size:11.5px; font-weight:600; color:var(--ink-soft); font-family:inherit; border-radius:0; }
+.valor-toggle button + button{ border-left:1px solid var(--line-strong); }
+.valor-toggle button.ativo{ background:var(--contrato); color:#fff; }
+.valor-toggle button:hover:not(.ativo){ background:rgba(0,0,0,0.05); color:var(--ink); }
 @media (max-width:640px){
   .nav-extra #userEmail{ display:none; }
 }
@@ -706,6 +711,10 @@ dialog#dlgParam::backdrop{background:rgba(20,26,34,0.55);}
   <button class="tab-btn" data-q="F">Fornecedores</button>
   <div class="nav-extra">
     <span id="userEmail"></span>
+    <div class="valor-toggle tt" role="group" tabindex="0" aria-label="Ver valores brutos ou líquidos" data-tt="Líquido: valor após descontos (ex.: INSS/ISS retido). Bruto: valor antes dos descontos, só com os cancelamentos (anulações) já removidos.">
+      <button type="button" id="btnValorLiquido">Líquido</button>
+      <button type="button" id="btnValorBruto">Bruto</button>
+    </div>
     <button type="button" id="btnAbrirParametros">Parâmetros</button>
     <button type="button" id="btnAbrirImportacao2">Importar dados</button>
     <button type="button" id="btnSair">Sair</button>
@@ -802,11 +811,17 @@ const ABA = {
 };
 const CABECALHOS = {
   Arquivos: ['Quinzena','PeriodId','Data','Ano','Mes','SourceHeader','Status','Arquivo','Valido'],
-  Pivot: ['Quinzena','PeriodId','Vinculo','Grupo','Valor'],
-  Liquidacoes: ['Fornecedor_Codigo','Fornecedor_Nome','Vinculo','Quinzena','PeriodId','Valor','Exercicio','Liquidacao','Empenho']
+  // ValorBruto = Valor Lançamento - |Valor Anulação| (despesa bruta, sem descontos).
+  // ValorLiquido = ValorBruto - Valor Descontos (despesa líquida). Liquidações com ValorBruto <= 0
+  // (totalmente canceladas por anulação) não entram nem na soma, nem na planilha.
+  Pivot: ['Quinzena','PeriodId','Vinculo','Grupo','ValorBruto','ValorLiquido'],
+  Liquidacoes: ['Fornecedor_Codigo','Fornecedor_Nome','Vinculo','Quinzena','PeriodId','ValorBruto','ValorLiquido','Exercicio','Liquidacao','Empenho']
 };
 
 let TOKEN = null, TOKEN_EXP = 0, CLIENTE_TOKEN = null, SESSAO = null, INATIV_TIMER = null;
+let ULTIMOS_TABS = null;
+let MODO_VALOR = 'liquido'; // 'liquido' (padrão) ou 'bruto' — qual coluna de valor é exibida no relatório
+try { const mv = localStorage.getItem('pq_modo_valor'); if (mv === 'bruto' || mv === 'liquido') MODO_VALOR = mv; } catch(e){}
 
 function $(id){ return document.getElementById(id); }
 function mostrar(tela){
@@ -924,8 +939,7 @@ function garantirAbas(){
   return SHEETS('?fields=sheets.properties.title').then(function(meta){
     const existentes = (meta.sheets||[]).map(function(s){ return s.properties.title; });
     const faltando = Object.keys(CABECALHOS).filter(function(n){ return existentes.indexOf(n) < 0; });
-    if (!faltando.length) return;
-    return SHEETS(':batchUpdate', {
+    const criar = !faltando.length ? Promise.resolve() : SHEETS(':batchUpdate', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ requests: faltando.map(function(n){ return { addSheet: { properties:{ title:n } } }; }) })
@@ -937,6 +951,31 @@ function garantirAbas(){
         });
       }));
     });
+    return criar.then(migrarCabecalhos);
+  });
+}
+
+// Corrige a LINHA de cabeçalho (linha 1) das abas já existentes quando o esquema de colunas muda
+// (ex.: "Valor" virou "ValorBruto"+"ValorLiquido"). Não mexe nas linhas de dados — por isso o certo
+// é remover e reimportar os arquivos antigos depois que o cabeçalho for corrigido.
+function migrarCabecalhos(){
+  const nomes = Object.keys(CABECALHOS);
+  const ranges = nomes.map(function(n){ return 'ranges='+encodeURIComponent(n+'!1:1'); }).join('&');
+  return SHEETS('/values:batchGet?'+ranges+'&valueRenderOption=UNFORMATTED_VALUE').then(function(resp){
+    const chamadas = [];
+    (resp.valueRanges||[]).forEach(function(vr, i){
+      const nome = nomes[i];
+      const esperado = CABECALHOS[nome];
+      const atual = (vr.values && vr.values[0]) ? vr.values[0].map(String) : [];
+      const igual = atual.length===esperado.length && atual.every(function(v,idx){ return v===esperado[idx]; });
+      if (!igual && atual.length){
+        const letra = colLetra(esperado.length);
+        chamadas.push(SHEETS('/values/'+encodeURIComponent(nome+'!A1:'+letra+'1')+'?valueInputOption=RAW', {
+          method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values:[esperado] })
+        }));
+      }
+    });
+    return Promise.all(chamadas);
   });
 }
 
@@ -956,6 +995,15 @@ function paraObjetos(linhas){
   return linhas.slice(1).filter(function(l){ return l.length && l[0]!==''; }).map(function(l){
     const o = {}; cab.forEach(function(h,i){ o[h] = l[i]; }); return o;
   });
+}
+
+// Lê o valor de uma linha (Pivot ou Liquidacoes) de acordo com o modo escolhido (bruto/líquido).
+// Faz fallback para a coluna antiga "Valor" (schema anterior) se a linha ainda não tiver sido
+// reimportada com as colunas novas, para não quebrar o relatório durante a transição.
+function valorConformeModo(o){
+  const campo = MODO_VALOR === 'bruto' ? 'ValorBruto' : 'ValorLiquido';
+  if (o[campo] !== undefined && o[campo] !== '') return Number(o[campo]);
+  return Number(o.Valor)||0;
 }
 
 function montarDados(tabs){
@@ -982,7 +1030,7 @@ function montarDados(tabs){
         ordem.push(chave);
       }
       const idx = periods.findIndex(function(per){ return per.id === String(p.PeriodId); });
-      if (idx >= 0) porVinculo[chave].values[idx] = Number(p.Valor);
+      if (idx >= 0) porVinculo[chave].values[idx] = valorConformeModo(p);
     });
     DATA[q] = { file:'Google Sheets', periods:periods, rows: ordem.map(function(k){ return porVinculo[k]; }), sheetTotals:{}, sheetGrandTotal:[] };
   });
@@ -998,7 +1046,7 @@ function montarDados(tabs){
     const codigo = String(r.Fornecedor_Codigo);
     if (suppliers[codigo] === undefined) suppliers[codigo] = String(r.Fornecedor_Nome||codigo);
     const fi = indiceArquivo[String(r.PeriodId)+'|'+String(r.Quinzena)];
-    return [codigo, String(r.Vinculo), fi, Number(r.Valor), Number(r.Exercicio)||0, String(r.Liquidacao||''), String(r.Empenho||'')];
+    return [codigo, String(r.Vinculo), fi, valorConformeModo(r), Number(r.Exercicio)||0, String(r.Liquidacao||''), String(r.Empenho||'')];
   }).filter(function(r){ return r[2] !== undefined; });
 
   DATA.liq = { files:files, suppliers:suppliers, rows:rows, fmt:'liquidacao' };
@@ -1023,6 +1071,7 @@ function buscarUsuarioEDados(){
         mostrar('semDados');
         return;
       }
+      ULTIMOS_TABS = tabs;
       const DATA = montarDados(tabs);
       mostrar('app');
       iniciarRelatorio(DATA);
@@ -1030,6 +1079,24 @@ function buscarUsuarioEDados(){
     .catch(function(e){
       mostrarErro('Não foi possível carregar os dados da planilha.\n\nDetalhe: '+e.message+(dicaParaErro(e) ? '\n\n'+dicaParaErro(e) : ''));
     });
+}
+
+// Alterna entre ver os valores Brutos e Líquidos sem precisar reler a planilha do zero.
+function definirModoValor(modo){
+  if (modo !== 'bruto' && modo !== 'liquido') return;
+  MODO_VALOR = modo;
+  try { localStorage.setItem('pq_modo_valor', modo); } catch(e){}
+  atualizarBotoesModoValor();
+  if (ULTIMOS_TABS){
+    const DATA = montarDados(ULTIMOS_TABS);
+    iniciarRelatorio(DATA);
+  }
+}
+
+function atualizarBotoesModoValor(){
+  if (!$('btnValorLiquido') || !$('btnValorBruto')) return;
+  $('btnValorLiquido').classList.toggle('ativo', MODO_VALOR==='liquido');
+  $('btnValorBruto').classList.toggle('ativo', MODO_VALOR==='bruto');
 }
 
 function abasVazias(tabs){
@@ -1469,7 +1536,25 @@ function passoMapeamento(){
     codigo: detectarColuna(cabDet, ['cod fornecedor','cod credor','codigo fornecedor','codigo credor','cod forn','fornecedor','credor'], ['nome','razao']),
     nome: detectarColuna(cabDet, ['nome fornecedor','nome credor','razao social','nome'], []),
     vinculoDet: detectarColuna(cabDet, ['vinculo'], []),
-    valorDet: detectarColuna(cabDet, ['valor liquido','liquido'], []),
+    // Despesa bruta = Valor Lançamento - |Valor Anulação| (cancelamentos). Se isso der <= 0, a
+    // liquidação foi totalmente cancelada e é descartada. Despesa líquida = despesa bruta - Desconto.
+    // Calculamos os dois a partir das colunas primárias (Lançamento/Anulação/Desconto) em vez de
+    // confiar em colunas já totalizadas do arquivo ("Valor Líquido"/"Total Liquido"), que já vimos
+    // virem erradas/trocadas na exportação de alguns meses.
+    lancamento: detectarColuna(cabDet, ['valor lancamento','lancamento'], []),
+    desconto: detectarColuna(cabDet, ['valor desconto','desconto'], []),
+    // Cuidado: muitos arquivos têm uma coluna "Com Anulação" (sim/não), diferente de "Valor
+    // Anulação" (o valor em si) — por isso busca primeiro o nome exato antes do genérico.
+    anulacao: (function(){
+      const exato = detectarColuna(cabDet, ['valor anulacao'], []);
+      return exato >= 0 ? exato : detectarColuna(cabDet, ['anulacao'], ['com ']);
+    })(),
+    // Coluna "Total Liquido"/"Valor Líquido" do arquivo: usada só como referência, para o aviso de
+    // plausibilidade (não é mais a fonte do valor gravado).
+    valorRefDet: (function(){
+      const exato = detectarColuna(cabDet, ['total liquido'], []);
+      return exato >= 0 ? exato : detectarColuna(cabDet, ['valor liquido','liquido'], []);
+    })(),
     exercicio: detectarColuna(cabDet, ['exercicio'], []),
     liquidacao: detectarColuna(cabDet, ['liquidacao', 'nr liquidacao', 'numero liquidacao'], []),
     empenho: detectarColuna(cabDet, ['empenho'], []),
@@ -1489,11 +1574,14 @@ function passoMapeamento(){
     '<div class="imp-map"><label>Aba de detalhe</label>'+selectAbaHTML('impAbaDet', wb.SheetNames, nomeDetalhe)+
     '<label>Aba dinâmica (totais)</label>'+selectAbaHTML('impAbaPiv', wb.SheetNames, nomePivot)+'</div>'+
     '<h4>Mapeamento — aba de detalhe (liquidações por fornecedor)</h4>'+
+    '<p style="color:var(--ink-soft);font-size:12px;margin:-6px 0 10px;">Despesa bruta = Lançamento − |Anulação|. Despesa líquida = despesa bruta − Desconto. Liquidação com despesa bruta ≤ 0 é tratada como totalmente cancelada e não entra na importação.</p>'+
     '<div class="imp-map">'+
     '<label>Código do fornecedor</label>'+selectHTML('mapCodigo', cabDet, sugestao.codigo, false)+
     '<label>Nome do fornecedor</label>'+selectHTML('mapNome', cabDet, sugestao.nome, true)+
     '<label>Vínculo</label>'+selectHTML('mapVinculoDet', cabDet, sugestao.vinculoDet, false)+
-    '<label>Valor líquido</label>'+selectHTML('mapValorDet', cabDet, sugestao.valorDet, false)+
+    '<label>Valor do lançamento (bruto)</label>'+selectHTML('mapLancamento', cabDet, sugestao.lancamento, false)+
+    '<label>Valor de desconto</label>'+selectHTML('mapDesconto', cabDet, sugestao.desconto, true)+
+    '<label>Valor de anulação</label>'+selectHTML('mapAnulacao', cabDet, sugestao.anulacao, true)+
     '<label>Exercício</label>'+selectHTML('mapExercicio', cabDet, sugestao.exercicio, true)+
     '<label>Nº liquidação</label>'+selectHTML('mapLiquidacao', cabDet, sugestao.liquidacao, true)+
     '<label>Nº empenho</label>'+selectHTML('mapEmpenho', cabDet, sugestao.empenho, true)+
@@ -1503,7 +1591,7 @@ function passoMapeamento(){
     '<label>Vínculo</label>'+selectHTML('mapVinculoPiv', cabPiv, sugestao.vinculoPiv, false)+
     '<label>Valor total</label>'+selectHTML('mapValorPiv', cabPiv, sugestao.valorPiv, false)+
     '</div>'+
-    (sugestao.codigo<0 || sugestao.vinculoDet<0 || sugestao.valorDet<0 || sugestao.vinculoPiv<0 || sugestao.valorPiv<0
+    (sugestao.codigo<0 || sugestao.vinculoDet<0 || sugestao.lancamento<0 || sugestao.vinculoPiv<0 || sugestao.valorPiv<0
       ? '<div class="imp-aviso">Alguma coluna obrigatória não foi identificada automaticamente — confira e selecione manualmente acima antes de avançar.</div>' : '')+
     '<div class="imp-acoes"><button type="button" id="impVoltar2">Voltar</button><button type="button" class="primario" id="impAvancar2">Validar dados</button></div>';
 
@@ -1515,11 +1603,13 @@ function passoMapeamento(){
   $('impAvancar2').addEventListener('click', function(){
     IMP_MAPA = {
       sheetDetalhe: $('impAbaDet').value, sheetPivot: $('impAbaPiv').value,
-      codigo:+$('mapCodigo').value, nome:+$('mapNome').value, vinculoDet:+$('mapVinculoDet').value, valorDet:+$('mapValorDet').value,
+      codigo:+$('mapCodigo').value, nome:+$('mapNome').value, vinculoDet:+$('mapVinculoDet').value,
+      lancamento:+$('mapLancamento').value, desconto:+$('mapDesconto').value, anulacao:+$('mapAnulacao').value,
       exercicio:+$('mapExercicio').value, liquidacao:+$('mapLiquidacao').value, empenho:+$('mapEmpenho').value,
-      vinculoPiv:+$('mapVinculoPiv').value, valorPiv:+$('mapValorPiv').value
+      vinculoPiv:+$('mapVinculoPiv').value, valorPiv:+$('mapValorPiv').value,
+      valorRefDet: sugestao.valorRefDet // coluna já totalizada do arquivo, só p/ conferência de plausibilidade
     };
-    if (IMP_MAPA.codigo<0 || IMP_MAPA.vinculoDet<0 || IMP_MAPA.valorDet<0 || IMP_MAPA.vinculoPiv<0 || IMP_MAPA.valorPiv<0){
+    if (IMP_MAPA.codigo<0 || IMP_MAPA.vinculoDet<0 || IMP_MAPA.lancamento<0 || IMP_MAPA.vinculoPiv<0 || IMP_MAPA.valorPiv<0){
       alert2('Selecione todas as colunas obrigatórias antes de continuar.'); return;
     }
     passoValidacao();
@@ -1551,11 +1641,21 @@ function extrairRegistros(matriz, linhaCabIdx, mapa, ehPivot){
     if (ehPivot){
       out.push({ vinculo:vinculo, valor:Number(l[mapa.valorPiv])||0 });
     } else {
+      const lancamento = Number(l[mapa.lancamento])||0;
+      const anulacao = mapa.anulacao>=0 ? (Number(l[mapa.anulacao])||0) : 0;
+      const desconto = mapa.desconto>=0 ? (Number(l[mapa.desconto])||0) : 0;
+      // Despesa bruta = lançamento menos o cancelamento (a anulação pode vir com sinal positivo ou
+      // negativo conforme o arquivo — por isso sempre subtraímos o valor absoluto dela).
+      const valorBruto = lancamento - Math.abs(anulacao);
+      if (valorBruto <= 0) continue; // liquidação totalmente cancelada — não contabiliza
+      const valorLiquido = valorBruto - desconto;
       out.push({
         codigo: mapa.codigo>=0 ? String(l[mapa.codigo]) : '',
         nome: mapa.nome>=0 ? String(l[mapa.nome]||'') : '',
         vinculo: vinculo,
-        valor: Number(l[mapa.valorDet])||0,
+        valorBruto: valorBruto,
+        valorLiquido: valorLiquido,
+        valorRef: mapa.valorRefDet>=0 ? (Number(l[mapa.valorRefDet])||0) : null,
         exercicio: mapa.exercicio>=0 ? (Number(l[mapa.exercicio])||0) : 0,
         liquidacao: mapa.liquidacao>=0 ? String(l[mapa.liquidacao]||'') : '',
         empenho: mapa.empenho>=0 ? String(l[mapa.empenho]||'') : ''
@@ -1588,32 +1688,49 @@ function passoValidacao(){
       const chave = a.periodId+'|'+a.quinzena;
       const duplicado = !!IMP_EXISTENTES[chave];
       const conflito = porChave[chave].length > 1 ? porChave[chave].map(function(x){ return x.nome; }) : null;
-      let matDet = [], matPiv = [], erro = null, pivotCalculado = false;
+      let matDet = [], matPiv = [], erro = null, temPivotArquivo = false;
       try{
         matDet = matrizDaAba(a.workbook, IMP_MAPA.sheetDetalhe);
         if (!matDet.length) erro = 'aba "'+IMP_MAPA.sheetDetalhe+'" não encontrada ou vazia neste arquivo';
         if (!erro){
           matPiv = matrizDaAba(a.workbook, IMP_MAPA.sheetPivot);
-          if (IMP_MAPA.sheetPivot === IMP_MAPA.sheetDetalhe || !matPiv.length) pivotCalculado = true;
+          temPivotArquivo = IMP_MAPA.sheetPivot !== IMP_MAPA.sheetDetalhe && matPiv.length > 0;
         }
       } catch(e){ erro = e.message; }
       if (erro) return { arquivo:a, duplicado:duplicado, conflito:conflito, erro:erro };
 
       const linhaCabDet = acharLinhaCabecalho(matDet);
       const detalhe = extrairRegistros(matDet, linhaCabDet, IMP_MAPA, false);
-      let pivot;
-      if (pivotCalculado){
-        const porVinc = {};
-        detalhe.forEach(function(d){ porVinc[d.vinculo] = (porVinc[d.vinculo]||0) + d.valor; });
-        pivot = Object.keys(porVinc).map(function(v){ return { vinculo:v, valor:porVinc[v] }; });
-      } else {
+
+      // O Pivot gravado na planilha é SEMPRE calculado a partir do próprio detalhe já corrigido
+      // (Lançamento - Anulação - Desconto), nunca copiado da Tabela Dinâmica do arquivo — assim o
+      // relatório fica imune a colunas já totalizadas que venham erradas/trocadas na origem.
+      const porVinc = {};
+      detalhe.forEach(function(d){
+        const g = porVinc[d.vinculo] || (porVinc[d.vinculo] = { vinculo:d.vinculo, valorBruto:0, valorLiquido:0 });
+        g.valorBruto += d.valorBruto; g.valorLiquido += d.valorLiquido;
+      });
+      const pivot = Object.keys(porVinc).map(function(v){ return porVinc[v]; });
+
+      const totalBruto = detalhe.reduce(function(s,r){ return s+r.valorBruto; }, 0);
+      const totalLiquido = detalhe.reduce(function(s,r){ return s+r.valorLiquido; }, 0);
+
+      // Comparação só informativa: soma da Tabela Dinâmica do próprio arquivo (ou da coluna
+      // "Total Liquido"/"Valor Líquido", se não houver aba dinâmica separada) contra o nosso líquido
+      // calculado. Uma diferença grande aqui aponta pra coluna totalizada do arquivo estar errada —
+      // mas isso NÃO afeta o valor gravado, que vem sempre do cálculo acima.
+      let totalPivRef = null, diff = 0;
+      if (temPivotArquivo){
         const linhaCabPiv = acharLinhaCabecalho(matPiv);
-        pivot = extrairRegistros(matPiv, linhaCabPiv, IMP_MAPA, true);
+        const pivotArquivo = extrairRegistros(matPiv, linhaCabPiv, IMP_MAPA, true);
+        totalPivRef = pivotArquivo.reduce(function(s,r){ return s+r.valor; }, 0);
+      } else if (IMP_MAPA.valorRefDet >= 0){
+        totalPivRef = detalhe.reduce(function(s,r){ return s + (r.valorRef!==null ? r.valorRef : r.valorLiquido); }, 0);
       }
-      const totalDet = detalhe.reduce(function(s,r){ return s+r.valor; }, 0);
-      const totalPiv = pivot.reduce(function(s,r){ return s+r.valor; }, 0);
-      const diff = Math.abs(totalDet - totalPiv);
-      return { arquivo:a, duplicado:duplicado, conflito:conflito, pivotCalculado:pivotCalculado, detalhe:detalhe, pivot:pivot, totalDet:totalDet, totalPiv:totalPiv, diff:diff };
+      if (totalPivRef !== null) diff = Math.abs(totalLiquido - totalPivRef);
+
+      return { arquivo:a, duplicado:duplicado, conflito:conflito, temPivotArquivo:temPivotArquivo, detalhe:detalhe, pivot:pivot,
+        totalBruto:totalBruto, totalLiquido:totalLiquido, totalPivRef:totalPivRef, diff:diff };
     });
 
     renderValidacao(resultados, semData);
@@ -1626,30 +1743,32 @@ function passoValidacao(){
 function renderValidacao(resultados, semData){
   IMP_PROCESSADOS = resultados;
   const linhas = resultados.map(function(r){
-    if (r.erro) return '<tr><td>'+esc(r.arquivo.nome)+'</td><td colspan="4" style="color:var(--alert)">'+esc(r.erro)+'</td></tr>';
+    if (r.erro) return '<tr><td>'+esc(r.arquivo.nome)+'</td><td colspan="5" style="color:var(--alert)">'+esc(r.erro)+'</td></tr>';
     const status = r.conflito ? '<span style="color:var(--alert)">conflito: mesma competência/quinzena de outro arquivo deste lote</span>'
       : r.duplicado ? '<span style="color:var(--gold)">já importado — será ignorado</span>'
-      : (r.diff>0.01 ? '<span style="color:var(--alert)">diferença entre detalhe e totais</span>' : '<span style="color:var(--under-ink)">ok</span>'+(r.pivotCalculado?' <span style="color:var(--ink-faint)">(totais calculados a partir do detalhe — sem aba dinâmica)</span>':''));
+      : (r.totalPivRef!==null && r.diff>0.01 ? '<span style="color:var(--alert)">líquido calculado difere do total do arquivo</span>' : '<span style="color:var(--under-ink)">ok</span>'+(!r.temPivotArquivo?' <span style="color:var(--ink-faint)">(sem aba dinâmica para comparar)</span>':''));
     return '<tr><td>'+esc(r.arquivo.nome)+'<br><span style="color:var(--ink-faint)">'+esc(r.arquivo.data)+' · '+(r.arquivo.quinzena==='1'?'1ª':'2ª')+' quinzena</span></td>'+
       '<td class="n">'+r.detalhe.length+'</td>'+
-      '<td class="n">'+fmtBRL(r.totalDet)+'</td>'+
-      '<td class="n">'+fmtBRL(r.totalPiv)+'</td>'+
+      '<td class="n">'+fmtBRL(r.totalBruto)+'</td>'+
+      '<td class="n">'+fmtBRL(r.totalLiquido)+'</td>'+
+      '<td class="n">'+(r.totalPivRef!==null ? fmtBRL(r.totalPivRef) : '—')+'</td>'+
       '<td>'+status+'</td></tr>';
   }).join('');
 
   const validosParaImportar = resultados.filter(function(r){ return !r.erro && !r.duplicado && !r.conflito; });
   const duplicados = resultados.filter(function(r){ return !r.erro && !r.conflito && r.duplicado; }).length;
   const emConflito = resultados.filter(function(r){ return !r.erro && r.conflito; }).length;
-  const comDivergencia = validosParaImportar.filter(function(r){ return r.diff>0.01; }).length;
+  const comDivergencia = validosParaImportar.filter(function(r){ return r.totalPivRef!==null && r.diff>0.01; }).length;
 
   $('impBody').innerHTML =
     '<h4>Conferência antes de importar</h4>'+
+    '<p style="color:var(--ink-soft);font-size:12px;margin:-4px 0 10px;">"Bruto" e "Líquido" são calculados por nós a partir de Lançamento/Anulação/Desconto de cada linha (não dependem da coluna de totais do arquivo). "Total do arquivo" é só uma referência, vindo da Tabela Dinâmica ou da coluna de totais do próprio arquivo.</p>'+
     (semData.length ? '<div class="imp-aviso">'+semData.length+' arquivo(s) sem data/quinzena definida foram ignorados.</div>' : '')+
-    '<table class="imp-tabela"><thead><tr><th>Arquivo</th><th class="n">Liquidações</th><th class="n">Total detalhe</th><th class="n">Total dinâmica</th><th>Situação</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+    '<table class="imp-tabela"><thead><tr><th>Arquivo</th><th class="n">Liquidações</th><th class="n">Bruto</th><th class="n">Líquido</th><th class="n">Total do arquivo</th><th>Situação</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
     (emConflito ? '<div class="imp-aviso">'+emConflito+' arquivo(s) apontam para a mesma competência e quinzena que outro arquivo deste lote — isso duplicaria dados. Volte e ajuste a quinzena/data de um deles antes de importar.</div>' : '')+
-    (comDivergencia ? '<div class="imp-aviso">'+comDivergencia+' arquivo(s) têm diferença entre a soma do detalhe e o total da aba dinâmica — confira antes de confirmar; mesmo assim serão importados com os valores do detalhe.</div>' : '')+
+    (comDivergencia ? '<div class="imp-aviso">'+comDivergencia+' arquivo(s) têm o líquido calculado bem diferente do total que o próprio arquivo mostra (Tabela Dinâmica/coluna de totais) — isso costuma indicar erro na exportação de origem (ex.: coluna trocada). Confira o arquivo original; mesmo assim ele será importado com o valor calculado por nós (Lançamento − Anulação − Desconto), que é o mais confiável.</div>' : '')+
     (duplicados ? '<div class="imp-aviso">'+duplicados+' arquivo(s) já existem na planilha (mesma data/quinzena) e serão ignorados.</div>' : '')+
-    (validosParaImportar.length ? '<div class="imp-ok">'+validosParaImportar.length+' arquivo(s) novo(s) prontos para importar, totalizando '+fmtBRL(validosParaImportar.reduce(function(s,r){return s+r.totalDet;},0))+'.</div>' : '<div class="imp-aviso">Nenhum arquivo novo para importar.</div>')+
+    (validosParaImportar.length ? '<div class="imp-ok">'+validosParaImportar.length+' arquivo(s) novo(s) prontos para importar, totalizando '+fmtBRL(validosParaImportar.reduce(function(s,r){return s+r.totalLiquido;},0))+' líquidos ('+fmtBRL(validosParaImportar.reduce(function(s,r){return s+r.totalBruto;},0))+' brutos).</div>' : '<div class="imp-aviso">Nenhum arquivo novo para importar.</div>')+
     '<div class="imp-acoes"><button type="button" id="impVoltar3">Voltar</button><button type="button" class="primario" id="impConfirmar" '+(validosParaImportar.length?'':'disabled')+'>Importar '+validosParaImportar.length+' arquivo(s)</button></div>';
 
   $('impVoltar3').addEventListener('click', passoMapeamento);
@@ -1664,8 +1783,8 @@ function gravarImportacao(){
   validos.forEach(function(r){
     const a = r.arquivo;
     linhasArquivos.push([a.quinzena, a.periodId, a.data, a.ano, a.mes, a.nome, 'realizado', a.nome, true]);
-    r.pivot.forEach(function(p){ linhasPivot.push([a.quinzena, a.periodId, p.vinculo, '', p.valor]); });
-    r.detalhe.forEach(function(d){ linhasLiq.push([d.codigo, d.nome, d.vinculo, a.quinzena, a.periodId, d.valor, d.exercicio, d.liquidacao, d.empenho]); });
+    r.pivot.forEach(function(p){ linhasPivot.push([a.quinzena, a.periodId, p.vinculo, '', p.valorBruto, p.valorLiquido]); });
+    r.detalhe.forEach(function(d){ linhasLiq.push([d.codigo, d.nome, d.vinculo, a.quinzena, a.periodId, d.valorBruto, d.valorLiquido, d.exercicio, d.liquidacao, d.empenho]); });
   });
 
   // Ordem importante: grava primeiro os dados "pesados" (Liquidações, depois Pivot) em lotes
@@ -1737,6 +1856,9 @@ $('btnSair').addEventListener('click', sair);
 $('btnAbrirImportacao').addEventListener('click', abrirImportacao);
 $('btnAbrirImportacao2').addEventListener('click', abrirImportacao);
 $('btnFecharImport').addEventListener('click', function(){ $('dlgImport').close(); });
+$('btnValorLiquido').addEventListener('click', function(){ definirModoValor('liquido'); });
+$('btnValorBruto').addEventListener('click', function(){ definirModoValor('bruto'); });
+atualizarBotoesModoValor();
 $('btnAbrirParametros').addEventListener('click', abrirParametros);
 $('btnFecharParam').addEventListener('click', function(){ $('dlgParam').close(); });
 $('dlgParam').addEventListener('close', function(){
@@ -2371,6 +2493,27 @@ function renderTotals(sel, rows){
 /* ================= ABA FORNECEDORES ================= */
 const FONTE_F = [{key:'proprio',name:'Recurso Próprio'},{key:'estadual',name:'Recurso Estadual'},{key:'federal',name:'Recurso Federal'},{key:'finisa',name:'FINISA'},{key:'all',name:'Todas as fontes'}];
 function fonteFName(){ return (FONTE_F.filter(function(f){ return f.key===S.fonteF; })[0]||FONTE_F[0]).name; }
+// Soma, para um fornecedor, todas as liquidações (1ª + 2ª quinzena, todos os meses) de um ano-calendário,
+// respeitando os mesmos filtros de fonte/área/FINISA/opcionais aplicados na tela — independe dos períodos
+// selecionados para comparação (sel.all/sel.cmp), que normalmente não cobrem o ano inteiro.
+function supplierYearTotal(code, year, optKeyFilter){
+  let total = 0;
+  ['1','2'].forEach(function(q){
+    const F = Q['F'+q];
+    F.recs.forEach(function(r){
+      if (r.f !== code) return;
+      if (!S.finisa && r.fonte.key==='finisa') return;
+      if (S.fonteF!=='all' && r.fonte.key!==S.fonteF) return;
+      if (S.area!=='all' && r.area.key!==S.area) return;
+      const per = F.valid[r.k];
+      if (!per || per.year !== year) return;
+      if (optKeyFilter){ if (r.optKey !== optKeyFilter) return; }
+      else if (r.optKey && !S.fInclude[r.optKey]) return;
+      total += r.t;
+    });
+  });
+  return total;
+}
 function supplierGroups(sel){
   const F = Q[DK()], term = S.search.trim().toLowerCase(), incS = S.fInclude;
   const main = {}, sep = {}; OPTIONAL_PROPRIO.forEach(function(o){ sep[o.key] = {}; });
@@ -2693,11 +2836,14 @@ function renderSupplierFocus(sel){
   }
   const s = main || seps[0].s, st = s.st, cs = cmpState(st);
   const cRef = s.cnt[sel.ref.k]||0, cAvg = sel.cmp.length ? sel.cmp.reduce(function(a,p){ return a+(s.cnt[p.k]||0); },0)/sel.cmp.length : null;
+  const anoRef = sel.ref.year, optKeyFoco = main ? null : seps[0].o.key;
+  const totalAno = supplierYearTotal(S.fSup, anoRef, optKeyFoco);
   document.getElementById('kpiRow').innerHTML =
     '<div class="kpi k-contrato"><div class="k-label">RECEBIDO — '+sel.ref.short.toUpperCase()+'</div><div class="k-value">'+fmtBRL(st.ref)+'</div><div class="k-sub">'+(isMensal()?'Mensal · '+sel.ref.subLabel:S.fQ+'ª quinzena · venc. '+sel.ref.date)+'</div></div>'+
     '<div class="kpi"><div class="k-label">MÉDIA DOS PERÍODOS COMPARADOS</div><div class="k-value">'+fmtBRL(st.avg)+'</div><div class="k-sub">'+(sel.cmp.length? sel.cmp.length+' período(s): '+sel.cmp.map(function(p){return p.short;}).join(', '):'Nenhum período comparado')+'</div></div>'+
     '<div class="kpi k-saldo"><div class="k-label">VARIAÇÃO × MÉDIA</div><div class="k-value '+(cs?(cs.cls==='cmp-over'?'over':'under'):'')+'">'+(cs?cs.icon+' ':'')+fmtBRL(st.dAvg)+'</div><div class="k-sub">'+fmtPct(st.pAvg,true)+' · vs '+(st.prevP?st.prevP.short+': '+fmtPct(st.pPrev,true):'—')+'</div></div>'+
-    '<div class="kpi k-despesa"><div class="k-label">LIQUIDAÇÕES — '+sel.ref.short.toUpperCase()+'</div><div class="k-value">'+cRef+'</div><div class="k-sub">Média de '+(cAvg===null?'—':cAvg.toLocaleString('pt-BR',{maximumFractionDigits:1}))+' por período comparado</div></div>';
+    '<div class="kpi k-despesa"><div class="k-label">LIQUIDAÇÕES — '+sel.ref.short.toUpperCase()+'</div><div class="k-value">'+cRef+'</div><div class="k-sub">Média de '+(cAvg===null?'—':cAvg.toLocaleString('pt-BR',{maximumFractionDigits:1}))+' por período comparado</div></div>'+
+    '<div class="kpi"><div class="k-label">TOTAL DO FORNECEDOR EM '+anoRef+'</div><div class="k-value">'+fmtBRL(totalAno)+'</div><div class="k-sub">1ª + 2ª quinzena do ano · '+esc(fonteFName())+(S.area!=='all'?' · área filtrada':'')+(optKeyFoco?' · '+esc(seps[0].o.name)+' (separado)':'')+'</div></div>';
 
   // Gráficos
   const parts = [];
